@@ -1,4 +1,4 @@
-﻿# Smart Shipment Tracking — Technical Architecture
+# Smart Shipment Tracking — Technical Architecture
 
 ## 1. Purpose
 
@@ -163,7 +163,7 @@ Do not serialize entities directly into HTTP responses.
 Timestamps use `Instant` and are returned in ISO 8601 format.
 Weight and capacity use `BigDecimal`, both measured in kg.
 Addresses, origin, and destination are text fields in the first version.
-A separate Location entity is a future extension.
+Location is implemented as a standalone entity with id, country, city, and address. Its relationships to trips and shipments will be added separately.
 
 ## 5. Shipment Lifecycle
 
@@ -437,3 +437,23 @@ these settings. Keep new secret values out of source code and documentation.
 
 Create the PostgreSQL database and customers table before startup. Hibernate uses
 ddl-auto=validate, so startup checks the schema rather than creating tables.
+
+## 17. Vehicle and Location entities
+
+Vehicle is in com.smartshipment.vehicle.entity and maps to vehicles. It stores a
+unique registrationNumber (30 characters), positive capacityKg as BigDecimal
+(NUMERIC(12,2), kg), and is_deleted for deactivation. Bean Validation rejects
+missing or invalid values when the entity is persisted.
+
+Location is in com.smartshipment.location.entity and maps to locations. Country
+and city are required strings of at most 100 characters; address is required and
+at most 255 characters. Both entities use identity-generated Long identifiers.
+
+Before restarting with ddl-auto=validate, run the complete SQL script
+smart-shipment-tracking/database/create_vehicles_and_locations.sql in pgAdmin
+against smart_shipment_tracking. It creates both tables in a transaction. It is
+a manual setup script, not an automatically applied migration.
+
+This step adds the entities only. Vehicle and Location repositories, DTOs,
+controllers, and Trip relationships are outside this step. Trip currently retains
+its text origin and destination fields.
