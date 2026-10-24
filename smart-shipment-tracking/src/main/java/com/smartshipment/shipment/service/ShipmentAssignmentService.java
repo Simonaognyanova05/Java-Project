@@ -17,12 +17,13 @@ import jakarta.validation.constraints.Positive;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.annotation.Isolation;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.server.ResponseStatusException;
 
 @Service
 @Validated
-@Transactional
+@Transactional(isolation = Isolation.READ_COMMITTED)
 public class ShipmentAssignmentService {
     private final ShipmentRepository shipments;
     private final TripRepository trips;

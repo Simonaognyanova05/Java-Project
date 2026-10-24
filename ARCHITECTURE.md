@@ -512,6 +512,35 @@ work. The constructor is a persistence foundation, not a completed shipment
 creation business operation. Assignment does not change status or create a
 status event. Existing or externally created shipment records can be assigned.
 
-Assignment and rejection scenarios are integration-tested with H2. PostgreSQL
-concurrency and loading tests are still pending; sequential tests do not prove
-concurrent capacity protection on PostgreSQL.
+Assignment and rejection scenarios are integration-tested with H2. PostgreSQL capacity concurrency verification is documented in section 20. Loading remains a separate task.
+## 20. Transactional capacity verification
+
+Shipment assignment and trip modification transactions explicitly use
+READ_COMMITTED isolation. Assignment holds the shipment lock, then the old and
+new trip locks in ascending ID order until commit or rollback. Under these locks,
+the sum of all assigned weights plus the incoming weight must not exceed the
+vehicle capacity. The same-trip case does not add the weight again. BigDecimal
+preserves decimal kg values and equality with the capacity is allowed. A rejected
+reassignment leaves the old assignment and shipment version unchanged.
+
+ShipmentCapacityIntegrationTests uses independent committed setup, worker, and
+verification transactions. Two workers synchronize with a CyclicBarrier after
+locking different shipments, then compete to move from distinct source trips
+into one target. With 20 kg reserved and two incoming 60 kg shipments against a
+100 kg capacity, exactly one commits; the rejected shipment retains its source
+trip and version. A second test verifies 33.33 + 66.67 kg exactly fills 100 kg,
+and an extra 0.01 kg is rejected without persistence changes.
+
+The tests have passed against local PostgreSQL 18.6. To repeat from the project
+directory with local credentials configured in .env:
+
+    .\mvnw.cmd -Dtest=ShipmentCapacityIntegrationTests test
+
+This test class generates a unique capacity_test_<UUID> schema, creates its own
+tables, and drops them on context shutdown. It does not use public for test data.
+The database user needs permission to create schemas. Docker is not required.
+No application schema changes or additional manual SQL are needed for this step.
+
+This verifies concurrent assignment/reassignment capacity protection. Shipment
+loading, status/history changes, and their integration test are separate tasks.
+Future loading and weight-changing operations must obey the same locking protocol.
