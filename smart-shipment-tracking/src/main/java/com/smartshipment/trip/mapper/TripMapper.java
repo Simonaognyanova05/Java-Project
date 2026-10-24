@@ -21,6 +21,6 @@ public class TripMapper {
 
     public TripResponse toResponse(Trip trip) {
         return new TripResponse(trip.getId(), trip.getOrigin(), trip.getDestination(),
-                trip.getDepartureAt(), trip.getExpectedArrivalAt(), trip.getVersion(), trip.isDeleted());
+                trip.getDepartureAt(), trip.getExpectedArrivalAt(), trip.getVersion(), trip.isDeleted(), trip.getVehicle() == null ? null : trip.getVehicle().getId(), trip.getEmployees().stream().map(employee -> employee.getId()).sorted().toList());
     }
 }

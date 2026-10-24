@@ -457,3 +457,32 @@ a manual setup script, not an automatically applied migration.
 This step adds the entities only. Vehicle and Location repositories, DTOs,
 controllers, and Trip relationships are outside this step. Trip currently retains
 its text origin and destination fields.
+## 18. Trip management implementation
+
+TripController exposes GET/POST /api/trips, GET/PUT/DELETE /api/trips/{id},
+and PUT/DELETE /api/trips/{id}/employees/{employeeId}. Creation returns 201
+with a Location header; deletion and crew removal return 204. Unknown or
+inactive resources return 404, while invalid request fields return 400.
+
+TripRequest requires origin, destination, departureAt, expectedArrivalAt, and
+vehicleId. Arrival must be strictly after departure. TripResponse additionally
+contains vehicleId and sorted employeeIds, with no entity serialization.
+TripMapper leaves relationship resolution to TripService.
+
+TripService uses transactions and locks the active trip row for updates,
+deactivation, and crew changes. Lists and reads map relationships inside a
+read-only transaction. Trips are deactivated using is_deleted, and queries
+exclude them. Crew assignment is idempotent and accepts active employees only;
+removal also permits inactive employees so historical assignments can be cleaned
+up. Removing membership does not delete the employee.
+
+Run smart-shipment-tracking/database/add_trip_vehicle.sql once in pgAdmin
+against smart_shipment_tracking before restarting. This adds the nullable
+vehicle_id foreign key, preserving existing trips. New API creates and updates
+require an active vehicle. Vehicles and employees currently need to be created
+in the database; their management endpoints are not implemented yet.
+
+Shipment assignment, capacity enforcement, and rejection of trip changes serving
+undelivered shipments require the upcoming Shipment integration. They are not
+implemented by this step. Location remains standalone and route endpoints are
+still text fields.

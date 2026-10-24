@@ -8,6 +8,9 @@ import java.util.Set;
 
 import com.smartshipment.employee.entity.Employee;
 
+import com.smartshipment.vehicle.entity.Vehicle;
+import jakarta.persistence.FetchType;
+import jakarta.persistence.ManyToOne;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.JoinTable;
 import jakarta.persistence.ManyToMany;
@@ -45,6 +48,13 @@ public class Trip {
 
     @Column(name = "is_deleted", nullable = false)
     private boolean deleted;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "vehicle_id", foreignKey = @jakarta.persistence.ForeignKey(name = "fk_trips_vehicle"))
+    private Vehicle vehicle;
+
+    public Vehicle getVehicle() { return vehicle; }
+    public void setVehicle(Vehicle vehicle) { this.vehicle = vehicle; }
 
     @ManyToMany
     @JoinTable(name = "trip_employees",
