@@ -1,6 +1,17 @@
 package com.smartshipment.trip.entity;
 
 import java.time.Instant;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.Objects;
+import java.util.Set;
+
+import com.smartshipment.employee.entity.Employee;
+
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.JoinTable;
+import jakarta.persistence.ManyToMany;
+import jakarta.persistence.UniqueConstraint;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -34,6 +45,25 @@ public class Trip {
 
     @Column(name = "is_deleted", nullable = false)
     private boolean deleted;
+
+    @ManyToMany
+    @JoinTable(name = "trip_employees",
+            joinColumns = @JoinColumn(name = "trip_id"),
+            inverseJoinColumns = @JoinColumn(name = "employee_id"),
+            uniqueConstraints = @UniqueConstraint(columnNames = {"trip_id", "employee_id"}))
+    private Set<Employee> employees = new HashSet<>();
+
+    public Set<Employee> getEmployees() {
+        return Collections.unmodifiableSet(employees);
+    }
+
+    public void addEmployee(Employee employee) {
+        employees.add(Objects.requireNonNull(employee, "Employee is required"));
+    }
+
+    public void removeEmployee(Employee employee) {
+        employees.remove(employee);
+    }
 
     protected Trip() {
     }
