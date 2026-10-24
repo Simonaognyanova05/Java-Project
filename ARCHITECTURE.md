@@ -569,3 +569,46 @@ of delivered/future/equal-time/missing-deadline shipments, stable ordering,
 pagination, empty results, and invalid page sizes. The future shipment creation
 API should require a future deadline; existing constructor-based fixtures remain
 compatible. No deadline update API is added in this step.
+## 22. Concurrent loading integration test
+
+ShipmentLoadingService.load(shipmentId, employeeId, expectedVersion) implements
+only ACCEPTED -> LOADED. It uses one READ_COMMITTED transaction, locks shipment
+then trip, checks the expected version, active trip, active vehicle, and active
+employee, and rechecks total reserved trip weight. Loading does not add reserved
+weight again. The status/version update and one TrackingEvent commit together.
+The event records ACCEPTED, LOADED, an Instant from Clock, and the employee.
+There is no cascading deletion of history or related records.
+
+ShipmentLoadingIntegrationTests exercises real repositories and service methods.
+Fixtures, each worker, and final verification use separate committed transactions.
+A CyclicBarrier starts the workers together without timing-based sleeps. Cases:
+
+- Two employees loading one shipment: exactly one succeeds, one receives a 409
+  service exception, the version increments once, and exactly one loading event
+  identifies the successful employee.
+- Different shipments totaling exactly the reserved capacity both load successfully.
+- An intentionally oversubscribed legacy fixture is rejected without status,
+  version, or history changes.
+- A database constraint rejecting the history INSERT causes the entire operation
+  to roll back, including shipment status and version. The constraint is temporary
+  and scoped to this test's shipment in the isolated test schema.
+
+The four tests passed against local PostgreSQL 18.6. Repeat from the project folder:
+
+    .\mvnw.cmd -Dtest=ShipmentLoadingIntegrationTests test
+
+Like the capacity test, this class generates a unique loading_test_<UUID> schema,
+creates and drops its own tables, and does not store test data in public. Local
+credentials come from .env; the user needs permission to create schemas.
+
+Before normal application startup, run database/create_tracking_events.sql once
+in pgAdmin against smart_shipment_tracking. The application now maps tracking_events
+and ddl-auto=validate requires that table. No changes to existing shipment rows
+are needed.
+
+This step adds a service-level loading operation and its integration tests, not
+a loading HTTP endpoint. Acceptance, other lifecycle transitions, the initial
+CREATED event, and the complete tracking API remain separate lifecycle work.
+The test prepares ACCEPTED fixtures directly rather than claiming to test those
+unimplemented operations. The 409 behavior is verified at the service boundary;
+an HTTP mapping test belongs with the future status controller.

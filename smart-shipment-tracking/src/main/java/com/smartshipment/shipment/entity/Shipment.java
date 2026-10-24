@@ -67,5 +67,12 @@ public class Shipment {
     public Instant getCreatedAt() { return createdAt; }
     public Instant getExpectedDeliveryAt() { return expectedDeliveryAt; }
     public void setExpectedDeliveryAt(Instant expectedDeliveryAt) { this.expectedDeliveryAt = expectedDeliveryAt; }
+    public void markLoaded() {
+        if (status != ShipmentStatus.ACCEPTED) {
+            throw new IllegalStateException("Only ACCEPTED shipments can be loaded");
+        }
+        status = ShipmentStatus.LOADED;
+    }
+
     public Long getVersion() { return version; }
 }
