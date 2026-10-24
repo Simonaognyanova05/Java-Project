@@ -544,3 +544,28 @@ No application schema changes or additional manual SQL are needed for this step.
 This verifies concurrent assignment/reassignment capacity protection. Shipment
 loading, status/history changes, and their integration test are separate tasks.
 Future loading and weight-changing operations must obey the same locking protocol.
+## 21. Overdue shipment query
+
+Shipment now has an optional expectedDeliveryAt Instant. Existing records without
+an expected deadline are excluded from overdue reporting. Run the complete
+smart-shipment-tracking/database/add_shipment_expected_delivery.sql script in
+pgAdmin against smart_shipment_tracking before restarting. It adds the nullable
+expected_delivery_at column and an index on (expected_delivery_at, id).
+
+ShipmentRepository.findOverdueShipments uses an explicit JPQL @Query with
+expectedDeliveryAt < :now and status <> :deliveredStatus. Ordering is by deadline
+ascending, then shipment ID ascending. Equality with now is not overdue.
+OverdueShipmentService supplies Instant.now(clock) using an injected UTC Clock
+and ShipmentStatus.DELIVERED; mapping runs inside a read-only transaction.
+
+GET /api/shipments/overdue?page=0&size=20 returns a JSON array of id,
+trackingNumber, status, expectedDeliveryAt, and optional tripId. Page is zero-based;
+size is limited to 1..100. Invalid pagination returns 400, and no matches return
+an empty array. Response DTOs do not include customer details. This endpoint is
+an operational report; it does not send notifications or change shipment status.
+
+Integration tests use a fixed Clock and cover all undelivered statuses, exclusion
+of delivered/future/equal-time/missing-deadline shipments, stable ordering,
+pagination, empty results, and invalid page sizes. The future shipment creation
+API should require a future deadline; existing constructor-based fixtures remain
+compatible. No deadline update API is added in this step.
