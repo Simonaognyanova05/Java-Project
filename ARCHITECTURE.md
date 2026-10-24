@@ -418,3 +418,22 @@ and overdue shipment search. If security is implemented, document authentication
 and 401/403 responses as well. Include instructions in README for opening Swagger
 UI and the generated OpenAPI specification.
 
+
+## 16. Local database credentials and secrets
+
+Store database connection settings and any future secrets (passwords, API keys,
+and signing keys) in smart-shipment-tracking/.env. Never commit real secrets.
+The .env file and environment-specific .env files are excluded from Git;
+.env.example contains only non-secret sample values and an empty password.
+
+Before starting the application, fill in DB_URL, DB_USERNAME, and DB_PASSWORD
+in .env using .env.example as a reference. The password is intentionally blank
+in the template and must be supplied locally.
+
+application.properties imports .env as a Java properties file, supporting startup
+from either the repository root or the smart-shipment-tracking directory. Use
+KEY=value syntax without surrounding quotes. Environment variables can override
+these settings. Keep new secret values out of source code and documentation.
+
+Create the PostgreSQL database and customers table before startup. Hibernate uses
+ddl-auto=validate, so startup checks the schema rather than creating tables.
