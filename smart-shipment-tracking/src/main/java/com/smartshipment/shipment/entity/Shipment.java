@@ -43,6 +43,9 @@ public class Shipment {
     @Column(nullable = false, updatable = false)
     private Instant createdAt = Instant.now();
 
+    @Column
+    private Instant expectedDeliveryAt;
+
     @Version
     private Long version;
 
@@ -62,5 +65,14 @@ public class Shipment {
     public ShipmentStatus getStatus() { return status; }
     public BigDecimal getWeightKg() { return weightKg; }
     public Instant getCreatedAt() { return createdAt; }
+    public Instant getExpectedDeliveryAt() { return expectedDeliveryAt; }
+    public void setExpectedDeliveryAt(Instant expectedDeliveryAt) { this.expectedDeliveryAt = expectedDeliveryAt; }
+    public void markLoaded() {
+        if (status != ShipmentStatus.ACCEPTED) {
+            throw new IllegalStateException("Only ACCEPTED shipments can be loaded");
+        }
+        status = ShipmentStatus.LOADED;
+    }
+
     public Long getVersion() { return version; }
 }

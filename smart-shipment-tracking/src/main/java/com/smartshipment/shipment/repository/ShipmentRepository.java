@@ -1,6 +1,8 @@
 package com.smartshipment.shipment.repository;
 
 import java.math.BigDecimal;
+import java.time.Instant;
+import org.springframework.data.domain.Pageable;
 import java.util.List;
 import java.util.Optional;
 
@@ -21,6 +23,15 @@ public interface ShipmentRepository extends JpaRepository<Shipment, Long> {
 
     @Query("select coalesce(sum(s.weightKg), 0) from Shipment s where s.trip.id = :tripId")
     BigDecimal totalAssignedWeight(@Param("tripId") Long tripId);
+
+    @Query("""
+            SELECT s FROM Shipment s
+            WHERE s.expectedDeliveryAt < :now
+              AND s.status <> :deliveredStatus
+            ORDER BY s.expectedDeliveryAt ASC, s.id ASC
+            """)
+    List<Shipment> findOverdueShipments(@Param("now") Instant now,
+            @Param("deliveredStatus") ShipmentStatus deliveredStatus, Pageable pageable);
 
     boolean existsByTripIdAndStatusNot(Long tripId, ShipmentStatus status);
 }

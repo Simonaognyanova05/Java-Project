@@ -4,6 +4,8 @@ import java.util.List;
 
 import com.smartshipment.employee.entity.Employee;
 import com.smartshipment.employee.repository.EmployeeRepository;
+import com.smartshipment.shipment.repository.ShipmentRepository;
+import com.smartshipment.shipment.entity.ShipmentStatus;
 import com.smartshipment.trip.dto.TripRequest;
 import com.smartshipment.trip.dto.TripResponse;
 import com.smartshipment.trip.entity.Trip;
@@ -17,21 +19,22 @@ import jakarta.validation.constraints.Positive;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.annotation.Isolation;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.server.ResponseStatusException;
 
 @Service
 @Validated
-@Transactional
+@Transactional(isolation = Isolation.READ_COMMITTED)
 public class TripService {
     private final TripRepository tripRepository;
     private final VehicleRepository vehicleRepository;
     private final EmployeeRepository employeeRepository;
     private final TripMapper tripMapper;
-    private final com.smartshipment.shipment.repository.ShipmentRepository shipments;
+    private final ShipmentRepository shipments;
 
     public TripService(TripRepository tripRepository, VehicleRepository vehicleRepository,
-            EmployeeRepository employeeRepository, TripMapper tripMapper, com.smartshipment.shipment.repository.ShipmentRepository shipments) {
+            EmployeeRepository employeeRepository, TripMapper tripMapper, ShipmentRepository shipments) {
         this.tripRepository = tripRepository;
         this.vehicleRepository = vehicleRepository;
         this.employeeRepository = employeeRepository;
@@ -72,7 +75,7 @@ public class TripService {
 
     public void delete(@Positive Long id) {
         Trip trip = getForUpdate(id);
-        if (shipments.existsByTripIdAndStatusNot(id, com.smartshipment.shipment.entity.ShipmentStatus.DELIVERED)) {
+        if (shipments.existsByTripIdAndStatusNot(id, ShipmentStatus.DELIVERED)) {
             throw new ResponseStatusException(HttpStatus.CONFLICT, "Trip has undelivered shipments");
         }
         trip.setDeleted(true);
