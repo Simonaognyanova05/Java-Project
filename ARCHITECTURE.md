@@ -482,7 +482,36 @@ vehicle_id foreign key, preserving existing trips. New API creates and updates
 require an active vehicle. Vehicles and employees currently need to be created
 in the database; their management endpoints are not implemented yet.
 
-Shipment assignment, capacity enforcement, and rejection of trip changes serving
+At the time of the TripController step, shipment assignment, capacity enforcement, and rejection of trip changes serving
 undelivered shipments require the upcoming Shipment integration. They are not
 implemented by this step. Location remains standalone and route endpoints are
 still text fields.
+## 19. Shipment assignment implementation
+
+PUT /api/shipments/{id}/trip accepts tripId and expectedVersion. It returns the
+shipment ID, tracking number, status, weightKg, assigned tripId, and current
+version. GET /api/trips/{id}/shipments lists assigned shipments without exposing
+customer details. Invalid inputs return 400, missing records 404, and stale
+versions, invalid states, inactive targets, or insufficient capacity 409.
+
+ShipmentAssignmentService permits assignments and reassignments only in CREATED
+or ACCEPTED. It locks the shipment first, then both old and new trip rows in
+ascending ID order. All future assignment and loading operations must follow
+this order. All weights assigned to a trip reserve capacity, including shipments
+not yet loaded. Repeating the same assignment does not count the weight twice.
+Trip updates check the replacement vehicle capacity under the same trip lock;
+trip deactivation rejects undelivered assigned shipments.
+
+The repository previously had no Shipment module. A minimal transport model now
+provides id, UUID trackingNumber, customer, optional trip, status, weightKg,
+createdAt, and version. Run database/create_shipments.sql manually against
+smart_shipment_tracking before restart. This is not the full planned Shipment
+module: creation endpoints, initial TrackingEvent, status transitions, expected
+delivery fields, addresses, QR generation, and public tracking remain separate
+work. The constructor is a persistence foundation, not a completed shipment
+creation business operation. Assignment does not change status or create a
+status event. Existing or externally created shipment records can be assigned.
+
+Assignment and rejection scenarios are integration-tested with H2. PostgreSQL
+concurrency and loading tests are still pending; sequential tests do not prove
+concurrent capacity protection on PostgreSQL.

@@ -28,13 +28,15 @@ public class TripService {
     private final VehicleRepository vehicleRepository;
     private final EmployeeRepository employeeRepository;
     private final TripMapper tripMapper;
+    private final com.smartshipment.shipment.repository.ShipmentRepository shipments;
 
     public TripService(TripRepository tripRepository, VehicleRepository vehicleRepository,
-            EmployeeRepository employeeRepository, TripMapper tripMapper) {
+            EmployeeRepository employeeRepository, TripMapper tripMapper, com.smartshipment.shipment.repository.ShipmentRepository shipments) {
         this.tripRepository = tripRepository;
         this.vehicleRepository = vehicleRepository;
         this.employeeRepository = employeeRepository;
         this.tripMapper = tripMapper;
+        this.shipments = shipments;
     }
 
     @Transactional(readOnly = true)
@@ -59,6 +61,9 @@ public class TripService {
     public TripResponse update(@Positive Long id, @Valid TripRequest request) {
         Trip trip = getForUpdate(id);
         Vehicle vehicle = getActiveVehicle(request.vehicleId());
+        if (shipments.totalAssignedWeight(id).compareTo(vehicle.getCapacityKg()) > 0) {
+            throw new ResponseStatusException(HttpStatus.CONFLICT, "Vehicle cannot carry assigned shipment weight");
+        }
         tripMapper.updateEntity(trip, request);
         trip.setVehicle(vehicle);
         tripRepository.flush();
@@ -67,6 +72,9 @@ public class TripService {
 
     public void delete(@Positive Long id) {
         Trip trip = getForUpdate(id);
+        if (shipments.existsByTripIdAndStatusNot(id, com.smartshipment.shipment.entity.ShipmentStatus.DELIVERED)) {
+            throw new ResponseStatusException(HttpStatus.CONFLICT, "Trip has undelivered shipments");
+        }
         trip.setDeleted(true);
     }
 

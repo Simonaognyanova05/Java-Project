@@ -19,6 +19,10 @@ public interface TripRepository extends JpaRepository<Trip, Long> {
     Optional<Trip> findByIdAndDeletedFalse(Long id);
 
     @Lock(LockModeType.PESSIMISTIC_WRITE)
+    @Query("select t from Trip t where t.id = :id")
+    Optional<Trip> findByIdForUpdate(@Param("id") Long id);
+
+    @Lock(LockModeType.PESSIMISTIC_WRITE)
     @Query("select t from Trip t where t.id = :id and t.deleted = false")
     Optional<Trip> findActiveForUpdate(@Param("id") Long id);
 }
