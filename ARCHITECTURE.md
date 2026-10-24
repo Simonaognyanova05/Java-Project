@@ -1,4 +1,4 @@
-﻿# Smart Shipment Tracking — Technical Architecture
+# Smart Shipment Tracking — Technical Architecture
 
 ## 1. Purpose
 
@@ -163,7 +163,7 @@ Do not serialize entities directly into HTTP responses.
 Timestamps use `Instant` and are returned in ISO 8601 format.
 Weight and capacity use `BigDecimal`, both measured in kg.
 Addresses, origin, and destination are text fields in the first version.
-A separate Location entity is a future extension.
+Location is implemented as a standalone entity with id, country, city, and address. Its relationships to trips and shipments will be added separately.
 
 ## 5. Shipment Lifecycle
 
@@ -418,3 +418,100 @@ and overdue shipment search. If security is implemented, document authentication
 and 401/403 responses as well. Include instructions in README for opening Swagger
 UI and the generated OpenAPI specification.
 
+
+## 16. Local database credentials and secrets
+
+Store database connection settings and any future secrets (passwords, API keys,
+and signing keys) in smart-shipment-tracking/.env. Never commit real secrets.
+The .env file and environment-specific .env files are excluded from Git;
+.env.example contains only non-secret sample values and an empty password.
+
+Before starting the application, fill in DB_URL, DB_USERNAME, and DB_PASSWORD
+in .env using .env.example as a reference. The password is intentionally blank
+in the template and must be supplied locally.
+
+application.properties imports .env as a Java properties file, supporting startup
+from either the repository root or the smart-shipment-tracking directory. Use
+KEY=value syntax without surrounding quotes. Environment variables can override
+these settings. Keep new secret values out of source code and documentation.
+
+Create the PostgreSQL database and customers table before startup. Hibernate uses
+ddl-auto=validate, so startup checks the schema rather than creating tables.
+
+## 17. Vehicle and Location entities
+
+Vehicle is in com.smartshipment.vehicle.entity and maps to vehicles. It stores a
+unique registrationNumber (30 characters), positive capacityKg as BigDecimal
+(NUMERIC(12,2), kg), and is_deleted for deactivation. Bean Validation rejects
+missing or invalid values when the entity is persisted.
+
+Location is in com.smartshipment.location.entity and maps to locations. Country
+and city are required strings of at most 100 characters; address is required and
+at most 255 characters. Both entities use identity-generated Long identifiers.
+
+Before restarting with ddl-auto=validate, run the complete SQL script
+smart-shipment-tracking/database/create_vehicles_and_locations.sql in pgAdmin
+against smart_shipment_tracking. It creates both tables in a transaction. It is
+a manual setup script, not an automatically applied migration.
+
+This step adds the entities only. Vehicle and Location repositories, DTOs,
+controllers, and Trip relationships are outside this step. Trip currently retains
+its text origin and destination fields.
+## 18. Trip management implementation
+
+TripController exposes GET/POST /api/trips, GET/PUT/DELETE /api/trips/{id},
+and PUT/DELETE /api/trips/{id}/employees/{employeeId}. Creation returns 201
+with a Location header; deletion and crew removal return 204. Unknown or
+inactive resources return 404, while invalid request fields return 400.
+
+TripRequest requires origin, destination, departureAt, expectedArrivalAt, and
+vehicleId. Arrival must be strictly after departure. TripResponse additionally
+contains vehicleId and sorted employeeIds, with no entity serialization.
+TripMapper leaves relationship resolution to TripService.
+
+TripService uses transactions and locks the active trip row for updates,
+deactivation, and crew changes. Lists and reads map relationships inside a
+read-only transaction. Trips are deactivated using is_deleted, and queries
+exclude them. Crew assignment is idempotent and accepts active employees only;
+removal also permits inactive employees so historical assignments can be cleaned
+up. Removing membership does not delete the employee.
+
+Run smart-shipment-tracking/database/add_trip_vehicle.sql once in pgAdmin
+against smart_shipment_tracking before restarting. This adds the nullable
+vehicle_id foreign key, preserving existing trips. New API creates and updates
+require an active vehicle. Vehicles and employees currently need to be created
+in the database; their management endpoints are not implemented yet.
+
+At the time of the TripController step, shipment assignment, capacity enforcement, and rejection of trip changes serving
+undelivered shipments require the upcoming Shipment integration. They are not
+implemented by this step. Location remains standalone and route endpoints are
+still text fields.
+## 19. Shipment assignment implementation
+
+PUT /api/shipments/{id}/trip accepts tripId and expectedVersion. It returns the
+shipment ID, tracking number, status, weightKg, assigned tripId, and current
+version. GET /api/trips/{id}/shipments lists assigned shipments without exposing
+customer details. Invalid inputs return 400, missing records 404, and stale
+versions, invalid states, inactive targets, or insufficient capacity 409.
+
+ShipmentAssignmentService permits assignments and reassignments only in CREATED
+or ACCEPTED. It locks the shipment first, then both old and new trip rows in
+ascending ID order. All future assignment and loading operations must follow
+this order. All weights assigned to a trip reserve capacity, including shipments
+not yet loaded. Repeating the same assignment does not count the weight twice.
+Trip updates check the replacement vehicle capacity under the same trip lock;
+trip deactivation rejects undelivered assigned shipments.
+
+The repository previously had no Shipment module. A minimal transport model now
+provides id, UUID trackingNumber, customer, optional trip, status, weightKg,
+createdAt, and version. Run database/create_shipments.sql manually against
+smart_shipment_tracking before restart. This is not the full planned Shipment
+module: creation endpoints, initial TrackingEvent, status transitions, expected
+delivery fields, addresses, QR generation, and public tracking remain separate
+work. The constructor is a persistence foundation, not a completed shipment
+creation business operation. Assignment does not change status or create a
+status event. Existing or externally created shipment records can be assigned.
+
+Assignment and rejection scenarios are integration-tested with H2. PostgreSQL
+concurrency and loading tests are still pending; sequential tests do not prove
+concurrent capacity protection on PostgreSQL.
