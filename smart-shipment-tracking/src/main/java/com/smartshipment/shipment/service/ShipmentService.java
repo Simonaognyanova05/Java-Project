@@ -1,59 +1,80 @@
 package com.smartshipment.shipment.service;
 
+import java.time.Clock;
+import java.time.Instant;
 import java.util.List;
 
-import org.springframework.http.HttpStatus;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.server.ResponseStatusException;
-
+import com.smartshipment.customer.entity.Customer;
+import com.smartshipment.customer.repository.CustomerRepository;
+import com.smartshipment.shipment.dto.AssignTripRequest;
 import com.smartshipment.shipment.dto.ShipmentRequest;
 import com.smartshipment.shipment.dto.ShipmentResponse;
 import com.smartshipment.shipment.entity.Shipment;
+import com.smartshipment.shipment.entity.ShipmentStatus;
 import com.smartshipment.shipment.mapper.ShipmentMapper;
 import com.smartshipment.shipment.repository.ShipmentRepository;
-import com.smartshipment.trip.entity.Trip;
+import com.smartshipment.tracking.entity.TrackingEvent;
+import com.smartshipment.tracking.repository.TrackingEventRepository;
 import com.smartshipment.trip.repository.TripRepository;
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Positive;
+import jakarta.validation.constraints.PositiveOrZero;
+import org.springframework.http.HttpStatus;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Isolation;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.validation.annotation.Validated;
+import org.springframework.web.server.ResponseStatusException;
 
 @Service
-@Transactional
+@Validated
+@Transactional(isolation = Isolation.READ_COMMITTED)
 public class ShipmentService {
-	private final ShipmentRepository shipmentRepository;
-	private final TripRepository tripRepository;
-	private final ShipmentMapper shipmentMapper;
+    private final ShipmentRepository shipments;
+    private final TripRepository trips;
+    private final CustomerRepository customers;
+    private final ShipmentMapper mapper;
+    private final ShipmentAssignmentService assignments;
+    private final TrackingEventRepository events;
+    private final Clock clock;
 
-	public ShipmentService(ShipmentRepository shipmentRepository, TripRepository tripRepository,
-			ShipmentMapper shipmentMapper) {
-		this.shipmentRepository = shipmentRepository;
-		this.tripRepository = tripRepository;
-		this.shipmentMapper = shipmentMapper;
-	}
+    public ShipmentService(ShipmentRepository shipments, TripRepository trips, CustomerRepository customers,
+            ShipmentMapper mapper, ShipmentAssignmentService assignments, TrackingEventRepository events, Clock clock) {
+        this.shipments = shipments;
+        this.trips = trips;
+        this.customers = customers;
+        this.mapper = mapper;
+        this.assignments = assignments;
+        this.events = events;
+        this.clock = clock;
+    }
 
-	@Transactional(readOnly = true)
-	public List<ShipmentResponse> findByTripId(Long tripId) {
-		if (!tripRepository.existsById(tripId)) {
-			throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Trip not found");
-		}
-		return shipmentRepository.findAllByTripId(tripId).stream().map(shipmentMapper::toResponse).toList();
-	}
+    public ShipmentResponse create(@Valid ShipmentRequest request) {
+        Customer customer = customers.findById(request.customerId())
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Customer not found"));
+        Shipment shipment = shipments.saveAndFlush(mapper.toEntity(request, customer));
+        events.saveAndFlush(new TrackingEvent(shipment, null, ShipmentStatus.CREATED, Instant.now(clock), null));
+        return mapper.toResponse(shipment);
+    }
 
-	public ShipmentResponse create(ShipmentRequest request) {
-		if (shipmentRepository.existsByTrackingNumber(request.trackingNumber())) {
-			throw new ResponseStatusException(HttpStatus.CONFLICT,
-					"A shipment with this tracking number already exists");
-		}
-		return shipmentMapper.toResponse(shipmentRepository.save(shipmentMapper.toEntity(request)));
-	}
+    @Transactional(readOnly = true)
+    public ShipmentResponse findById(@NotNull @Positive Long id) {
+        return mapper.toResponse(shipments.findById(id)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Shipment not found")));
+    }
 
-	public ShipmentResponse assignToTrip(Long shipmentId, Long tripId) {
-		Shipment shipment = shipmentRepository.findById(shipmentId)
-				.orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Shipment not found"));
-		if (shipment.getTrip() != null) {
-			throw new ResponseStatusException(HttpStatus.CONFLICT, "Shipment is already assigned to a trip");
-		}
-		Trip trip = tripRepository.findById(tripId)
-				.orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Trip not found"));
-		shipment.assignToTrip(trip);
-		return shipmentMapper.toResponse(shipmentRepository.save(shipment));
-	}
+    @Transactional(readOnly = true)
+    public List<ShipmentResponse> findByTripId(@NotNull @Positive Long tripId) {
+        if (trips.findByIdAndDeletedFalse(tripId).isEmpty()) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Trip not found");
+        }
+        return shipments.findAllByTripIdOrderByIdAsc(tripId).stream().map(mapper::toResponse).toList();
+    }
+
+    public ShipmentResponse assignToTrip(@NotNull @Positive Long shipmentId, @NotNull @Positive Long tripId,
+            @NotNull @PositiveOrZero Long expectedVersion) {
+        assignments.assign(shipmentId, new AssignTripRequest(tripId, expectedVersion));
+        return mapper.toResponse(shipments.findById(shipmentId).orElseThrow());
+    }
 }

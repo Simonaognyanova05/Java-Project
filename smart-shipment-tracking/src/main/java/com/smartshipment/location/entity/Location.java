@@ -1,96 +1,106 @@
 package com.smartshipment.location.entity;
 
 import java.math.BigDecimal;
-import java.time.LocalDateTime;
-
+import java.time.Instant;
 import com.smartshipment.vehicle.entity.Vehicle;
-
+import jakarta.persistence.FetchType;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
+import jakarta.validation.constraints.DecimalMin;
+import jakarta.validation.constraints.DecimalMax;
+import jakarta.validation.constraints.Digits;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
-import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Size;
 
 @Entity
 @Table(name = "locations")
 public class Location {
-	@Id
-	@GeneratedValue(strategy = GenerationType.IDENTITY)
-	private Long id;
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
 
-	@Column(nullable = false, precision = 10, scale = 7)
-	private BigDecimal latitude;
+    @NotBlank
+    @Size(max = 100)
+    @Column(nullable = false, length = 100)
+    private String country;
 
-	@Column(nullable = false, precision = 10, scale = 7)
-	private BigDecimal longitude;
+    @NotBlank
+    @Size(max = 100)
+    @Column(nullable = false, length = 100)
+    private String city;
 
-	@Column(length = 255)
-	private String address;
+    @NotBlank
+    @Size(max = 255)
+    @Column(nullable = false, length = 255)
+    private String address;
 
-	@Column(nullable = false)
-	private LocalDateTime recordedAt;
+    @DecimalMin("-90")
+    @DecimalMax("90")
+    @Digits(integer = 3, fraction = 7)
+    @Column(precision = 10, scale = 7)
+    private BigDecimal latitude;
 
-	@ManyToOne(fetch = FetchType.LAZY, optional = false)
-	@JoinColumn(name = "vehicle_id", nullable = false)
-	private Vehicle vehicle;
+    @DecimalMin("-180")
+    @DecimalMax("180")
+    @Digits(integer = 3, fraction = 7)
+    @Column(precision = 10, scale = 7)
+    private BigDecimal longitude;
 
-	protected Location() {
-	}
+    private Instant recordedAt;
 
-	public Location(BigDecimal latitude, BigDecimal longitude, String address, LocalDateTime recordedAt,
-			Vehicle vehicle) {
-		this.latitude = latitude;
-		this.longitude = longitude;
-		this.address = address;
-		this.recordedAt = recordedAt;
-		this.vehicle = vehicle;
-	}
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "vehicle_id")
+    private Vehicle vehicle;
 
-	public Long getId() {
-		return id;
-	}
+    public BigDecimal getLatitude() { return latitude; }
+    public void setLatitude(BigDecimal latitude) { this.latitude = latitude; }
+    public BigDecimal getLongitude() { return longitude; }
+    public void setLongitude(BigDecimal longitude) { this.longitude = longitude; }
+    public Instant getRecordedAt() { return recordedAt; }
+    public void setRecordedAt(Instant recordedAt) { this.recordedAt = recordedAt; }
+    public Vehicle getVehicle() { return vehicle; }
+    public void setVehicle(Vehicle vehicle) { this.vehicle = vehicle; }
 
-	public BigDecimal getLatitude() {
-		return latitude;
-	}
+    protected Location() {
+    }
 
-	public void setLatitude(BigDecimal latitude) {
-		this.latitude = latitude;
-	}
+    public Location(String country, String city, String address) {
+        this.country = country;
+        this.city = city;
+        this.address = address;
+    }
 
-	public BigDecimal getLongitude() {
-		return longitude;
-	}
+    public Long getId() {
+        return id;
+    }
 
-	public void setLongitude(BigDecimal longitude) {
-		this.longitude = longitude;
-	}
+    public String getCountry() {
+        return country;
+    }
 
-	public String getAddress() {
-		return address;
-	}
+    public void setCountry(String country) {
+        this.country = country;
+    }
 
-	public void setAddress(String address) {
-		this.address = address;
-	}
+    public String getCity() {
+        return city;
+    }
 
-	public LocalDateTime getRecordedAt() {
-		return recordedAt;
-	}
+    public void setCity(String city) {
+        this.city = city;
+    }
 
-	public void setRecordedAt(LocalDateTime recordedAt) {
-		this.recordedAt = recordedAt;
-	}
+    public String getAddress() {
+        return address;
+    }
 
-	public Vehicle getVehicle() {
-		return vehicle;
-	}
-
-	public void setVehicle(Vehicle vehicle) {
-		this.vehicle = vehicle;
-	}
+    public void setAddress(String address) {
+        this.address = address;
+    }
 }

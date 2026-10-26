@@ -1,77 +1,89 @@
 package com.smartshipment.shipment.entity;
 
 import java.math.BigDecimal;
+import java.time.Instant;
+import java.util.UUID;
 
+import com.smartshipment.customer.entity.Customer;
 import com.smartshipment.trip.entity.Trip;
-
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.FetchType;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.ManyToOne;
-import jakarta.persistence.Table;
+import jakarta.persistence.*;
+import jakarta.validation.constraints.DecimalMin;
+import jakarta.validation.constraints.Digits;
+import jakarta.validation.constraints.NotNull;
 
 @Entity
 @Table(name = "shipments")
 public class Shipment {
-	@Id
-	@GeneratedValue(strategy = GenerationType.IDENTITY)
-	private Long id;
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
 
-	@Column(nullable = false, unique = true, length = 50)
-	private String trackingNumber;
+    @Column(nullable = false, unique = true, updatable = false, length = 36)
+    private String trackingNumber = UUID.randomUUID().toString();
 
-	@Column(nullable = false, length = 160)
-	private String recipientName;
+    @NotNull
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @JoinColumn(name = "customer_id", nullable = false)
+    private Customer customer;
 
-	@Column(nullable = false, length = 255)
-	private String deliveryAddress;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "trip_id")
+    private Trip trip;
 
-	@Column(nullable = false, precision = 10, scale = 2)
-	private BigDecimal weightKg;
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false, length = 20)
+    private ShipmentStatus status = ShipmentStatus.CREATED;
 
-	@ManyToOne(fetch = FetchType.LAZY)
-	@JoinColumn(name = "trip_id")
-	private Trip trip;
+    @NotNull
+    @DecimalMin(value = "0", inclusive = false)
+    @Digits(integer = 10, fraction = 2)
+    @Column(nullable = false, precision = 12, scale = 2)
+    private BigDecimal weightKg;
 
-	protected Shipment() {
-	}
+    @Column(nullable = false, updatable = false)
+    private Instant createdAt = Instant.now();
 
-	public Shipment(String trackingNumber, String recipientName, String deliveryAddress, BigDecimal weightKg) {
-		this.trackingNumber = trackingNumber;
-		this.recipientName = recipientName;
-		this.deliveryAddress = deliveryAddress;
-		this.weightKg = weightKg;
-	}
+    @Column
+    private Instant expectedDeliveryAt;
 
-	public Long getId() {
-		return id;
-	}
+    @Version
+    private Long version;
 
-	public String getTrackingNumber() {
-		return trackingNumber;
-	}
+    @Column(length = 160)
+    private String recipientName;
 
-	public String getRecipientName() {
-		return recipientName;
-	}
+    @Column(length = 255)
+    private String deliveryAddress;
 
-	public String getDeliveryAddress() {
-		return deliveryAddress;
-	}
+    public String getRecipientName() { return recipientName; }
+    public void setRecipientName(String recipientName) { this.recipientName = recipientName; }
+    public String getDeliveryAddress() { return deliveryAddress; }
+    public void setDeliveryAddress(String deliveryAddress) { this.deliveryAddress = deliveryAddress; }
 
-	public BigDecimal getWeightKg() {
-		return weightKg;
-	}
+    protected Shipment() {
+    }
 
-	public Trip getTrip() {
-		return trip;
-	}
+    public Shipment(Customer customer, BigDecimal weightKg) {
+        this.customer = customer;
+        this.weightKg = weightKg;
+    }
 
-	public void assignToTrip(Trip trip) {
-		this.trip = trip;
-	}
+    public Long getId() { return id; }
+    public String getTrackingNumber() { return trackingNumber; }
+    public Customer getCustomer() { return customer; }
+    public Trip getTrip() { return trip; }
+    public void setTrip(Trip trip) { this.trip = trip; }
+    public ShipmentStatus getStatus() { return status; }
+    public BigDecimal getWeightKg() { return weightKg; }
+    public Instant getCreatedAt() { return createdAt; }
+    public Instant getExpectedDeliveryAt() { return expectedDeliveryAt; }
+    public void setExpectedDeliveryAt(Instant expectedDeliveryAt) { this.expectedDeliveryAt = expectedDeliveryAt; }
+    public void markLoaded() {
+        if (status != ShipmentStatus.ACCEPTED) {
+            throw new IllegalStateException("Only ACCEPTED shipments can be loaded");
+        }
+        status = ShipmentStatus.LOADED;
+    }
+
+    public Long getVersion() { return version; }
 }

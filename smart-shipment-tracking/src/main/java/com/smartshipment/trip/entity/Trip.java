@@ -1,142 +1,104 @@
 package com.smartshipment.trip.entity;
 
-import java.time.LocalDateTime;
+import java.time.Instant;
+import java.util.Collections;
 import java.util.HashSet;
+import java.util.Objects;
 import java.util.Set;
 
 import com.smartshipment.employee.entity.Employee;
 
+import com.smartshipment.vehicle.entity.Vehicle;
+import jakarta.persistence.FetchType;
+import jakarta.persistence.ManyToOne;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.JoinTable;
+import jakarta.persistence.ManyToMany;
+import jakarta.persistence.UniqueConstraint;
+
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
-import jakarta.persistence.EnumType;
-import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
-import jakarta.persistence.JoinTable;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.ManyToMany;
 import jakarta.persistence.Table;
+import jakarta.persistence.Version;
 
 @Entity
 @Table(name = "trips")
 public class Trip {
-	@Id
-	@GeneratedValue(strategy = GenerationType.IDENTITY)
-	private Long id;
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
 
-	@Column(nullable = false, unique = true, length = 50)
-	private String trackingNumber;
+    @Column(nullable = false, length = 255)
+    private String origin;
 
-	@Column(nullable = false, length = 120)
-	private String origin;
+    @Column(nullable = false, length = 255)
+    private String destination;
 
-	@Column(nullable = false, length = 120)
-	private String destination;
+    @Column(nullable = false)
+    private Instant departureAt;
 
-	@Enumerated(EnumType.STRING)
-	@Column(nullable = false, length = 20)
-	private TripStatus status;
+    @Column(nullable = false)
+    private Instant expectedArrivalAt;
 
-	@Column(nullable = false)
-	private LocalDateTime departureDate;
+    @Version
+    private Long version;
 
-	@Column(nullable = false)
-	private LocalDateTime estimatedArrivalDate;
+    @Column(name = "is_deleted", nullable = false)
+    private boolean deleted;
 
-	private LocalDateTime actualArrivalDate;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "vehicle_id", foreignKey = @jakarta.persistence.ForeignKey(name = "fk_trips_vehicle"))
+    private Vehicle vehicle;
 
-	@ManyToMany
-	@JoinTable(name = "trip_employees",
-			joinColumns = @JoinColumn(name = "trip_id"),
-			inverseJoinColumns = @JoinColumn(name = "employee_id"))
-	private Set<Employee> employees = new HashSet<>();
+    public Vehicle getVehicle() { return vehicle; }
+    public void setVehicle(Vehicle vehicle) { this.vehicle = vehicle; }
 
-	protected Trip() {
-	}
+    @ManyToMany
+    @JoinTable(name = "trip_employees",
+            joinColumns = @JoinColumn(name = "trip_id"),
+            inverseJoinColumns = @JoinColumn(name = "employee_id"),
+            uniqueConstraints = @UniqueConstraint(columnNames = {"trip_id", "employee_id"}))
+    private Set<Employee> employees = new HashSet<>();
 
-	public Trip(String trackingNumber, String origin, String destination, TripStatus status,
-			LocalDateTime departureDate, LocalDateTime estimatedArrivalDate, LocalDateTime actualArrivalDate) {
-		this.trackingNumber = trackingNumber;
-		this.origin = origin;
-		this.destination = destination;
-		this.status = status;
-		this.departureDate = departureDate;
-		this.estimatedArrivalDate = estimatedArrivalDate;
-		this.actualArrivalDate = actualArrivalDate;
-	}
+    public Set<Employee> getEmployees() {
+        return Collections.unmodifiableSet(employees);
+    }
 
-	public Long getId() {
-		return id;
-	}
+    public void addEmployee(Employee employee) {
+        if (employees.add(Objects.requireNonNull(employee, "Employee is required"))) {
+            employee.addTrip(this);
+        }
+    }
 
-	public String getTrackingNumber() {
-		return trackingNumber;
-	}
+    public void removeEmployee(Employee employee) {
+        if (employees.remove(employee)) {
+            employee.removeTrip(this);
+        }
+    }
 
-	public void setTrackingNumber(String trackingNumber) {
-		this.trackingNumber = trackingNumber;
-	}
+    protected Trip() {
+    }
 
-	public String getOrigin() {
-		return origin;
-	}
+    public Trip(String origin, String destination, Instant departureAt, Instant expectedArrivalAt) {
+        this.origin = origin;
+        this.destination = destination;
+        this.departureAt = departureAt;
+        this.expectedArrivalAt = expectedArrivalAt;
+    }
 
-	public void setOrigin(String origin) {
-		this.origin = origin;
-	}
-
-	public String getDestination() {
-		return destination;
-	}
-
-	public void setDestination(String destination) {
-		this.destination = destination;
-	}
-
-	public TripStatus getStatus() {
-		return status;
-	}
-
-	public void setStatus(TripStatus status) {
-		this.status = status;
-	}
-
-	public LocalDateTime getDepartureDate() {
-		return departureDate;
-	}
-
-	public void setDepartureDate(LocalDateTime departureDate) {
-		this.departureDate = departureDate;
-	}
-
-	public LocalDateTime getEstimatedArrivalDate() {
-		return estimatedArrivalDate;
-	}
-
-	public void setEstimatedArrivalDate(LocalDateTime estimatedArrivalDate) {
-		this.estimatedArrivalDate = estimatedArrivalDate;
-	}
-
-	public LocalDateTime getActualArrivalDate() {
-		return actualArrivalDate;
-	}
-
-	public void setActualArrivalDate(LocalDateTime actualArrivalDate) {
-		this.actualArrivalDate = actualArrivalDate;
-	}
-
-	public Set<Employee> getEmployees() {
-		return employees;
-	}
-
-	public void addEmployee(Employee employee) {
-		employees.add(employee);
-		employee.getTrips().add(this);
-	}
-
-	public void removeEmployee(Employee employee) {
-		employees.remove(employee);
-		employee.getTrips().remove(this);
-	}
+    public Long getId() { return id; }
+    public String getOrigin() { return origin; }
+    public void setOrigin(String origin) { this.origin = origin; }
+    public String getDestination() { return destination; }
+    public void setDestination(String destination) { this.destination = destination; }
+    public Instant getDepartureAt() { return departureAt; }
+    public void setDepartureAt(Instant departureAt) { this.departureAt = departureAt; }
+    public Instant getExpectedArrivalAt() { return expectedArrivalAt; }
+    public void setExpectedArrivalAt(Instant expectedArrivalAt) { this.expectedArrivalAt = expectedArrivalAt; }
+    public Long getVersion() { return version; }
+    public boolean isDeleted() { return deleted; }
+    public void setDeleted(boolean deleted) { this.deleted = deleted; }
 }

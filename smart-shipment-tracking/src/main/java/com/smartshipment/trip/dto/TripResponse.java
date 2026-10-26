@@ -1,16 +1,9 @@
 package com.smartshipment.trip.dto;
 
-import java.time.LocalDateTime;
+import java.time.Instant;
+import java.util.List;
 
-import com.smartshipment.trip.entity.TripStatus;
-
-public record TripResponse(
-		Long id,
-		String trackingNumber,
-		String origin,
-		String destination,
-		TripStatus status,
-		LocalDateTime departureDate,
-		LocalDateTime estimatedArrivalDate,
-		LocalDateTime actualArrivalDate) {
+public record TripResponse(Long id, String origin, String destination,
+        Instant departureAt, Instant expectedArrivalAt, Long version, boolean deleted,
+        Long vehicleId, List<Long> employeeIds) {
 }

@@ -8,23 +8,19 @@ import com.smartshipment.trip.entity.Trip;
 
 @Component
 public class TripMapper {
-	public Trip toEntity(TripRequest request) {
-		return new Trip(request.trackingNumber(), request.origin(), request.destination(), request.status(),
-				request.departureDate(), request.estimatedArrivalDate(), request.actualArrivalDate());
-	}
+    public Trip toEntity(TripRequest request) {
+        return new Trip(request.origin(), request.destination(), request.departureAt(), request.expectedArrivalAt());
+    }
 
-	public void updateEntity(Trip trip, TripRequest request) {
-		trip.setTrackingNumber(request.trackingNumber());
-		trip.setOrigin(request.origin());
-		trip.setDestination(request.destination());
-		trip.setStatus(request.status());
-		trip.setDepartureDate(request.departureDate());
-		trip.setEstimatedArrivalDate(request.estimatedArrivalDate());
-		trip.setActualArrivalDate(request.actualArrivalDate());
-	}
+    public void updateEntity(Trip trip, TripRequest request) {
+        trip.setOrigin(request.origin());
+        trip.setDestination(request.destination());
+        trip.setDepartureAt(request.departureAt());
+        trip.setExpectedArrivalAt(request.expectedArrivalAt());
+    }
 
-	public TripResponse toResponse(Trip trip) {
-		return new TripResponse(trip.getId(), trip.getTrackingNumber(), trip.getOrigin(), trip.getDestination(),
-				trip.getStatus(), trip.getDepartureDate(), trip.getEstimatedArrivalDate(), trip.getActualArrivalDate());
-	}
+    public TripResponse toResponse(Trip trip) {
+        return new TripResponse(trip.getId(), trip.getOrigin(), trip.getDestination(),
+                trip.getDepartureAt(), trip.getExpectedArrivalAt(), trip.getVersion(), trip.isDeleted(), trip.getVehicle() == null ? null : trip.getVehicle().getId(), trip.getEmployees().stream().map(employee -> employee.getId()).sorted().toList());
+    }
 }

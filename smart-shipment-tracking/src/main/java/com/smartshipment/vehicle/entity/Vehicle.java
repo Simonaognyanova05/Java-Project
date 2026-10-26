@@ -8,81 +8,85 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
+import jakarta.validation.constraints.DecimalMin;
+import jakarta.validation.constraints.Digits;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Size;
 
 @Entity
 @Table(name = "vehicles")
 public class Vehicle {
-	@Id
-	@GeneratedValue(strategy = GenerationType.IDENTITY)
-	private Long id;
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
 
-	@Column(nullable = false, unique = true, length = 20)
-	private String licensePlate;
+    @NotBlank
+    @Size(max = 30)
+    @Column(nullable = false, unique = true, length = 30)
+    private String registrationNumber;
 
-	@Column(nullable = false, length = 80)
-	private String make;
+    @NotNull
+    @DecimalMin(value = "0.00", inclusive = false)
+    @Digits(integer = 10, fraction = 2)
+    @Column(nullable = false, precision = 12, scale = 2)
+    private BigDecimal capacityKg;
 
-	@Column(nullable = false, length = 80)
-	private String model;
+    @Column(name = "is_deleted", nullable = false)
+    private boolean deleted;
 
-	@Column(nullable = false, length = 40)
-	private String vehicleType;
+    @Size(max = 80)
+    @Column(length = 80)
+    private String make;
 
-	@Column(nullable = false, precision = 10, scale = 2)
-	private BigDecimal capacityKg;
+    @Size(max = 80)
+    @Column(length = 80)
+    private String model;
 
-	protected Vehicle() {
-	}
+    @Size(max = 40)
+    @Column(length = 40)
+    private String vehicleType;
 
-	public Vehicle(String licensePlate, String make, String model, String vehicleType, BigDecimal capacityKg) {
-		this.licensePlate = licensePlate;
-		this.make = make;
-		this.model = model;
-		this.vehicleType = vehicleType;
-		this.capacityKg = capacityKg;
-	}
+    public String getMake() { return make; }
+    public void setMake(String make) { this.make = make; }
+    public String getModel() { return model; }
+    public void setModel(String model) { this.model = model; }
+    public String getVehicleType() { return vehicleType; }
+    public void setVehicleType(String vehicleType) { this.vehicleType = vehicleType; }
 
-	public Long getId() {
-		return id;
-	}
+    protected Vehicle() {
+    }
 
-	public String getLicensePlate() {
-		return licensePlate;
-	}
+    public Vehicle(String registrationNumber, BigDecimal capacityKg) {
+        this.registrationNumber = registrationNumber;
+        this.capacityKg = capacityKg;
+    }
 
-	public void setLicensePlate(String licensePlate) {
-		this.licensePlate = licensePlate;
-	}
+    public Long getId() {
+        return id;
+    }
 
-	public String getMake() {
-		return make;
-	}
+    public String getRegistrationNumber() {
+        return registrationNumber;
+    }
 
-	public void setMake(String make) {
-		this.make = make;
-	}
+    public void setRegistrationNumber(String registrationNumber) {
+        this.registrationNumber = registrationNumber;
+    }
 
-	public String getModel() {
-		return model;
-	}
+    public BigDecimal getCapacityKg() {
+        return capacityKg;
+    }
 
-	public void setModel(String model) {
-		this.model = model;
-	}
+    public void setCapacityKg(BigDecimal capacityKg) {
+        this.capacityKg = capacityKg;
+    }
 
-	public String getVehicleType() {
-		return vehicleType;
-	}
+    public boolean isDeleted() {
+        return deleted;
+    }
 
-	public void setVehicleType(String vehicleType) {
-		this.vehicleType = vehicleType;
-	}
-
-	public BigDecimal getCapacityKg() {
-		return capacityKg;
-	}
-
-	public void setCapacityKg(BigDecimal capacityKg) {
-		this.capacityKg = capacityKg;
-	}
+    public void setDeleted(boolean deleted) {
+        this.deleted = deleted;
+    }
 }
