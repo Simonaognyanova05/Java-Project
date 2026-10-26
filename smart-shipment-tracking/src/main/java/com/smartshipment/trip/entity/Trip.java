@@ -1,6 +1,10 @@
 package com.smartshipment.trip.entity;
 
 import java.time.LocalDateTime;
+import java.util.HashSet;
+import java.util.Set;
+
+import com.smartshipment.employee.entity.Employee;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -9,6 +13,9 @@ import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.JoinTable;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToMany;
 import jakarta.persistence.Table;
 
 @Entity
@@ -38,6 +45,12 @@ public class Trip {
 	private LocalDateTime estimatedArrivalDate;
 
 	private LocalDateTime actualArrivalDate;
+
+	@ManyToMany
+	@JoinTable(name = "trip_employees",
+			joinColumns = @JoinColumn(name = "trip_id"),
+			inverseJoinColumns = @JoinColumn(name = "employee_id"))
+	private Set<Employee> employees = new HashSet<>();
 
 	protected Trip() {
 	}
@@ -111,5 +124,19 @@ public class Trip {
 
 	public void setActualArrivalDate(LocalDateTime actualArrivalDate) {
 		this.actualArrivalDate = actualArrivalDate;
+	}
+
+	public Set<Employee> getEmployees() {
+		return employees;
+	}
+
+	public void addEmployee(Employee employee) {
+		employees.add(employee);
+		employee.getTrips().add(this);
+	}
+
+	public void removeEmployee(Employee employee) {
+		employees.remove(employee);
+		employee.getTrips().remove(this);
 	}
 }
