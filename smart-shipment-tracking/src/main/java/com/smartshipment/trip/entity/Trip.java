@@ -68,11 +68,15 @@ public class Trip {
     }
 
     public void addEmployee(Employee employee) {
-        employees.add(Objects.requireNonNull(employee, "Employee is required"));
+        if (employees.add(Objects.requireNonNull(employee, "Employee is required"))) {
+            employee.addTrip(this);
+        }
     }
 
     public void removeEmployee(Employee employee) {
-        employees.remove(employee);
+        if (employees.remove(employee)) {
+            employee.removeTrip(this);
+        }
     }
 
     protected Trip() {

@@ -1,5 +1,12 @@
 package com.smartshipment.employee.entity;
 
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.Objects;
+import java.util.Set;
+import com.smartshipment.trip.entity.Trip;
+import jakarta.persistence.ManyToMany;
+import jakarta.validation.constraints.Email;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
@@ -33,6 +40,36 @@ public class Employee {
 
     @Column(name = "is_deleted", nullable = false)
     private boolean deleted;
+
+    @Email
+    @Size(max = 254)
+    @Column(unique = true, length = 254)
+    private String email;
+
+    @Size(max = 30)
+    @Column(length = 30)
+    private String phone;
+
+    @ManyToMany(mappedBy = "employees")
+    private Set<Trip> trips = new HashSet<>();
+
+    public String getEmail() { return email; }
+    public void setEmail(String email) { this.email = email; }
+    public String getPhone() { return phone; }
+    public void setPhone(String phone) { this.phone = phone; }
+    public Set<Trip> getTrips() { return Collections.unmodifiableSet(trips); }
+
+    public void addTrip(Trip trip) {
+        if (trips.add(Objects.requireNonNull(trip, "Trip is required"))) {
+            trip.addEmployee(this);
+        }
+    }
+
+    public void removeTrip(Trip trip) {
+        if (trips.remove(trip)) {
+            trip.removeEmployee(this);
+        }
+    }
 
     protected Employee() {
     }

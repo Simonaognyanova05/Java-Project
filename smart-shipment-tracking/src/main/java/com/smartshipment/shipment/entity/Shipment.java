@@ -49,6 +49,17 @@ public class Shipment {
     @Version
     private Long version;
 
+    @Column(length = 160)
+    private String recipientName;
+
+    @Column(length = 255)
+    private String deliveryAddress;
+
+    public String getRecipientName() { return recipientName; }
+    public void setRecipientName(String recipientName) { this.recipientName = recipientName; }
+    public String getDeliveryAddress() { return deliveryAddress; }
+    public void setDeliveryAddress(String deliveryAddress) { this.deliveryAddress = deliveryAddress; }
+
     protected Shipment() {
     }
 

@@ -35,6 +35,25 @@ public class Vehicle {
     @Column(name = "is_deleted", nullable = false)
     private boolean deleted;
 
+    @Size(max = 80)
+    @Column(length = 80)
+    private String make;
+
+    @Size(max = 80)
+    @Column(length = 80)
+    private String model;
+
+    @Size(max = 40)
+    @Column(length = 40)
+    private String vehicleType;
+
+    public String getMake() { return make; }
+    public void setMake(String make) { this.make = make; }
+    public String getModel() { return model; }
+    public void setModel(String model) { this.model = model; }
+    public String getVehicleType() { return vehicleType; }
+    public void setVehicleType(String vehicleType) { this.vehicleType = vehicleType; }
+
     protected Vehicle() {
     }
 

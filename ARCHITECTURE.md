@@ -612,3 +612,61 @@ CREATED event, and the complete tracking API remain separate lifecycle work.
 The test prepares ACCEPTED fixtures directly rather than claiming to test those
 unimplemented operations. The 409 behavior is verified at the service boundary;
 an HTTP mapping test belongs with the future status controller.
+## 23. PR #4 local merge resolution
+
+The develop branch was reconciled with main. Main remains the canonical contract
+for Trip fields (origin, destination, departureAt, expectedArrivalAt, vehicleId),
+Instant timestamps, active-record filtering, optimistic versions, pessimistic
+locking, transactional capacity checks, history, and all existing tests. PR #4's
+separate unrestricted TripStatus lifecycle and duplicate trip tracking number
+were not adopted; adding a trip lifecycle requires explicit transition rules.
+The unused enum and accidentally committed .DS_Store were removed.
+
+Compatible PR additions:
+
+- POST /api/shipments creates a shipment with customerId, recipientName,
+  deliveryAddress, weightKg, and a future expectedDeliveryAt. The server generates
+  the tracking number; a client-supplied non-null trackingNumber is rejected.
+  Customer lookup, shipment persistence, and one initial CREATED event share a
+  transaction. GET /api/shipments/{id} resolves the returned Location header.
+- Existing main assignment routes remain unchanged. The older PR route
+  PUT /api/shipments/{shipmentId}/trip/{tripId}?expectedVersion=0 delegates to the
+  same assignment service. The version parameter is required; this route cannot
+  bypass capacity, status, active-record, or version checks.
+- GET /api/shipments/trip/{tripId} is retained as a staff-oriented detailed list.
+  GET /api/trips/{tripId}/shipments still returns the original limited projection.
+- Employee retains employeeNumber and deactivation, and gains optional unique
+  email and phone. The inverse trips collection is synchronized by both sides'
+  add/remove helpers, without cascade deletion.
+- Vehicle retains registrationNumber, positive capacityKg, and deactivation;
+  optional make, model, and vehicleType are added. PR licensePlate maps
+  conceptually to registrationNumber rather than introducing a second identifier.
+- Location retains country, city, and address. Optional latitude, longitude,
+  recordedAt (Instant), and vehicle association support GPS information, with
+  Bean Validation for latitude/longitude ranges.
+
+For an existing main database, apply database/merge_pr4_fields.sql once after all
+previous database scripts and before normal application startup. It only adds
+nullable columns and constraints/indexes and preserves existing records. The
+merge process itself does not apply this SQL to the public schema.
+
+Example creation request:
+
+    POST /api/shipments
+    {
+      "customerId": 1,
+      "recipientName": "Maria Petrova",
+      "deliveryAddress": "Vienna 1",
+      "weightKg": 10.00,
+      "expectedDeliveryAt": "2030-01-01T12:00:00Z"
+    }
+
+ShipmentCreationIntegrationTests covers creation/history atomicity, generated
+tracking numbers, request validation, the protected legacy assignment route,
+metadata persistence, and the inverse crew relationship. It uses a generated
+pr4_test_<UUID> schema like the loading and capacity tests. All 27 tests passed
+with an isolated H2 database during merge verification. Production credentials
+remain in the ignored .env file. No remote publication is part of this merge.
+Post-merge verification also passed 11 PostgreSQL 18.6 integration tests across
+ShipmentCreationIntegrationTests, ShipmentCapacityIntegrationTests, and
+ShipmentLoadingIntegrationTests in isolated schemas; no public data was changed.

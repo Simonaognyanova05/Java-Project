@@ -1,5 +1,14 @@
 package com.smartshipment.location.entity;
 
+import java.math.BigDecimal;
+import java.time.Instant;
+import com.smartshipment.vehicle.entity.Vehicle;
+import jakarta.persistence.FetchType;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
+import jakarta.validation.constraints.DecimalMin;
+import jakarta.validation.constraints.DecimalMax;
+import jakarta.validation.constraints.Digits;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
@@ -30,6 +39,33 @@ public class Location {
     @Size(max = 255)
     @Column(nullable = false, length = 255)
     private String address;
+
+    @DecimalMin("-90")
+    @DecimalMax("90")
+    @Digits(integer = 3, fraction = 7)
+    @Column(precision = 10, scale = 7)
+    private BigDecimal latitude;
+
+    @DecimalMin("-180")
+    @DecimalMax("180")
+    @Digits(integer = 3, fraction = 7)
+    @Column(precision = 10, scale = 7)
+    private BigDecimal longitude;
+
+    private Instant recordedAt;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "vehicle_id")
+    private Vehicle vehicle;
+
+    public BigDecimal getLatitude() { return latitude; }
+    public void setLatitude(BigDecimal latitude) { this.latitude = latitude; }
+    public BigDecimal getLongitude() { return longitude; }
+    public void setLongitude(BigDecimal longitude) { this.longitude = longitude; }
+    public Instant getRecordedAt() { return recordedAt; }
+    public void setRecordedAt(Instant recordedAt) { this.recordedAt = recordedAt; }
+    public Vehicle getVehicle() { return vehicle; }
+    public void setVehicle(Vehicle vehicle) { this.vehicle = vehicle; }
 
     protected Location() {
     }
