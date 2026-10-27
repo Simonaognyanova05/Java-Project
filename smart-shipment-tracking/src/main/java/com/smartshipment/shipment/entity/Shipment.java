@@ -79,10 +79,21 @@ public class Shipment {
     public Instant getExpectedDeliveryAt() { return expectedDeliveryAt; }
     public void setExpectedDeliveryAt(Instant expectedDeliveryAt) { this.expectedDeliveryAt = expectedDeliveryAt; }
     public void markLoaded() {
-        if (status != ShipmentStatus.ACCEPTED) {
-            throw new IllegalStateException("Only ACCEPTED shipments can be loaded");
+        transitionTo(ShipmentStatus.LOADED);
+    }
+
+    public void transitionTo(ShipmentStatus nextStatus) {
+        boolean allowed = switch (status) {
+            case CREATED -> nextStatus == ShipmentStatus.ACCEPTED;
+            case ACCEPTED -> nextStatus == ShipmentStatus.LOADED;
+            case LOADED -> nextStatus == ShipmentStatus.IN_TRANSIT;
+            case IN_TRANSIT -> nextStatus == ShipmentStatus.DELIVERED;
+            case DELIVERED -> false;
+        };
+        if (!allowed) {
+            throw new IllegalStateException("Invalid shipment status transition: " + status + " -> " + nextStatus);
         }
-        status = ShipmentStatus.LOADED;
+        status = nextStatus;
     }
 
     public Long getVersion() { return version; }
