@@ -1,0 +1,24 @@
+:root {
+  --color-bg: #08131d;
+  --color-surface: #101f2b;
+  --color-surface-hover: #162b39;
+  --color-border: #243b4b;
+  --color-text: #f3f6fa;
+  --color-text-muted: #a5b8ca;
+  --color-primary: #36e6bc;
+  --color-on-primary: #06231c;
+  --color-warning: #ffab63;
+  --color-danger: #ff7785;
+  --color-info: #67b8ff;
+  --font-body: "Inter", "Segoe UI", sans-serif;
+  --radius-sm: 6px;
+  --radius-md: 10px;
+  --radius-lg: 16px;
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-6: 24px;
+  --space-8: 32px;
+  --sidebar-width: 230px;
+}
