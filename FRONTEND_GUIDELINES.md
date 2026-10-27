@@ -1,34 +1,35 @@
-# Smart Shipment Tracking — общи правила за frontend
+# Smart Shipment Tracking — Frontend Guidelines
 
-Статус: договорена основа за разработка.
-Избран дизайн: **вариант 2 — тъмен диспечерски център**.
-Технология: **React с Create React App**, JavaScript и JSX, npm.
+Status: agreed baseline for development.
+Selected design: **Option 2 — Dark Dispatch Center**.
+Stack: **React with Create React App**, JavaScript and JSX, npm.
 
-Този документ е общата отправна точка за всички, които работят по frontend-а.
-При промяна на договорено решение обновяваме документа в същия pull request.
-Функционалността се съобразява с реалните Spring Boot DTO и endpoints.
+This document is the shared reference for everyone working on the frontend.
+Update it in the same pull request whenever an agreed decision changes.
+Features must follow the actual Spring Boot DTOs and endpoints.
+The documentation is in English; application labels remain in Bulgarian.
 
-## 1. Визуална основа
+## 1. Visual Reference
 
-Основен макет: [вариант 2](frontend-concepts/02_dark_dispatch/dashboard.png).
-Описание: [тъмен диспечерски център](frontend-concepts/02_dark_dispatch/README.md).
+Primary mockup: [Option 2](frontend-concepts/02_dark_dispatch/dashboard.png).
+Concept description: [Dark Dispatch Center](frontend-concepts/02_dark_dispatch/README.md).
 
-![Избран frontend дизайн](frontend-concepts/02_dark_dispatch/dashboard.png)
+![Selected frontend design](frontend-concepts/02_dark_dispatch/dashboard.png)
 
-Следваме композицията, цветовия характер и йерархията на този вариант.
-Снимката съдържа примерни данни; тя не определя API договора и бизнес правилата.
+Follow this option's composition, color scheme, and visual hierarchy.
+The image contains sample data; it does not define the API contract or business rules.
 
-- Тъмен фон, ясно отделени панели и светъл текст.
-- Ментово/тюркоазено за основни действия и активни елементи.
-- Оранжево за предупреждения и закъснения; червено за грешки.
-- Лява навигация, горна лента, обобщения, маршрут, детайли за курс и таблица с пратки.
-- Кратки надписи на български; имената на файловете и идентификаторите са на английски.
-- Декоративните ефекти остават умерени, така че данните и действията да се четат лесно.
+- Dark backgrounds, distinct panels, and light text.
+- Mint/turquoise accents for primary actions and active elements.
+- Orange for warnings and delays; red for errors.
+- Left navigation, top bar, summary cards, route visualization, trip details, and a shipment table.
+- Short Bulgarian UI labels; English filenames and identifiers.
+- Restrained decoration that keeps data and actions easy to read.
 
-## 2. Създаване и стартиране на проекта
+## 2. Project Creation and Startup
 
-Frontend-ът ще е в папка `frontend/` в корена, до `smart-shipment-tracking/`.
-Приложението се създава само веднъж от корена на хранилището:
+The frontend belongs in a root-level `frontend/` directory, alongside `smart-shipment-tracking/`.
+Create the application once, from the repository root:
 
 ```powershell
 npx create-react-app@latest frontend
@@ -36,8 +37,8 @@ cd frontend
 npm start
 ```
 
-Правилното име на командата е `npx create-react-app`, с интервал след `npx`.
-При вече създаден проект не изпълняваме генератора отново. След изтегляне на кода:
+The command is `npx create-react-app`, with a space after `npx`.
+Do not run the generator again for an existing project. After checking out the code:
 
 ```powershell
 cd frontend
@@ -45,39 +46,39 @@ npm ci
 npm start
 ```
 
-Работни адреси: frontend `http://localhost:3000`, backend `http://localhost:8080`.
-Backend-ът се стартира в отделен терминал от `smart-shipment-tracking/`:
+Development addresses: frontend `http://localhost:3000`, backend `http://localhost:8080`.
+Start the backend in a separate terminal from `smart-shipment-tracking/`:
 
 ```powershell
 .\mvnw.cmd spring-boot:run
 ```
 
-Create React App е deprecated според официалната документация на React.
-За този проект остава изрично избраният инструмент. Промяна на build инструмента
-се обсъжда от екипа, вместо да се прави самостоятелно в отделен клон.
+Create React App is deprecated according to the official React documentation.
+It remains the explicitly selected tool for this project. Discuss build-tool
+changes with the team instead of introducing them independently in a feature branch.
 
-При първоначалната настройка записваме използваната поддържана Node версия в
-`.nvmrc` или README на frontend-а. Commit-ваме `package-lock.json` и работим с npm.
-Версиите на библиотеките се фиксират чрез lock файла; не смесваме npm и Yarn.
+During initial setup, record the supported Node version in `.nvmrc` or the frontend README.
+Commit `package-lock.json` and use npm consistently. Dependency versions are captured
+in the lockfile; do not mix npm and Yarn.
 
-## 3. Технологични решения
+## 3. Technology Decisions
 
-| Област | Общо решение |
+| Area | Shared decision |
 |---|---|
-| UI | React, функционални компоненти и hooks |
-| Език | JavaScript и JSX |
-| Маршрути | React Router, с обща конфигурация на маршрутите |
-| Стилове | CSS variables и CSS Modules за компонентите |
-| HTTP | Един общ клиент върху `fetch` |
-| Локално състояние | `useState` и `useReducer`, според сложността |
-| Споделено състояние | Context само когато действително се използва от различни екрани |
-| Икони | Една обща система от линейни SVG икони |
-| Тестове | Jest и React Testing Library от CRA конфигурацията |
+| UI | React functional components and hooks |
+| Language | JavaScript and JSX |
+| Routing | React Router with a shared route configuration |
+| Styling | CSS variables and component CSS Modules |
+| HTTP | One shared client built on `fetch` |
+| Local state | `useState` and `useReducer`, depending on complexity |
+| Shared state | Context only for state genuinely shared across screens |
+| Icons | One consistent set of outline SVG icons |
+| Testing | Jest and React Testing Library from the CRA setup |
 
-Нови зависимости се добавят само при конкретна нужда и се описват в PR-а.
-Не добавяме втори HTTP клиент или втори UI стил за същата задача.
+Add dependencies only for a concrete need and explain them in the PR.
+Use the shared HTTP client and UI conventions across features.
 
-## 4. Структура на frontend-а
+## 4. Frontend Structure
 
 ```text
 frontend/
@@ -130,14 +131,14 @@ frontend/
   package-lock.json
 ```
 
-CRA запазва входната точка `src/index.js`; тя импортира `app/App.js`.
-Всяка feature папка съдържа своя страница, специфичните компоненти и при нужда
-feature hook. Споделени компоненти се изнасят в `components/`, когато вече имат
-повече от една реална употреба.
+Keep CRA's `src/index.js` entry point; it imports `app/App.js`.
+Each feature directory contains its page, feature-specific components, and a feature
+hook when needed. Move components into `components/` once they have more than one
+real use.
 
-## 5. Цветове, типография и разстояния
+## 5. Colors, Typography, and Spacing
 
-Начални общи tokens за `src/styles/tokens.css`:
+Initial shared tokens for `src/styles/tokens.css`:
 
 ```css
 :root {
@@ -168,82 +169,82 @@ feature hook. Споделени компоненти се изнасят в `co
 }
 ```
 
-Базов текст 16px, таблични данни и второстепенни надписи 14px, заглавия 24–32px.
-Ако Inter се използва, включваме вариант с кирилица и спазваме лиценза му.
-Всички компоненти използват общите tokens. Цветовете и размерите се коригират
-централно, вместо всяка страница да въвежда своя палитра.
+Use 16px body text, 14px table and secondary text, and 24–32px headings.
+If Inter is included, use a version with Cyrillic support and follow its license.
+All components use the shared tokens. Adjust colors and dimensions centrally
+rather than introducing a separate palette for each page.
 
-## 6. Layout и responsive поведение
+## 6. Layout and Responsive Behavior
 
-- При широк екран: постоянна sidebar навигация, header и основна работна зона.
-- Dashboard: показатели, централен маршрут, панел за избран курс, долна таблица.
-- Детайлите за пратка се отварят в страничен панел или отделна страница според екрана.
-- Под 1200px панелите се пренареждат в по-малко колони.
-- Под 768px sidebar става меню с бутон; панелите се подреждат вертикално.
-- Таблиците могат да имат собствен хоризонтален scroll, без да разширяват страницата.
-- Формите и диалозите остават използваеми с клавиатура и на тесен екран.
+- Wide screens: persistent sidebar, header, and main workspace.
+- Dashboard: summary cards, central route, selected-trip panel, and lower table.
+- Shipment details open in a side panel or dedicated page, depending on the screen.
+- Below 1200px, rearrange panels into fewer columns.
+- Below 768px, replace the sidebar with a menu button and stack panels vertically.
+- Tables may scroll horizontally inside their container without widening the page.
+- Forms and dialogs remain usable with a keyboard and on narrow screens.
 
-Интерактивните елементи са истински `button`, `a`, `input` и други семантични
-елементи. Осигуряваме видим focus, labels за полетата, управление на focus при
-диалози и надписи за иконните бутони. Статусите имат текст, а не само цвят.
+Use semantic interactive elements such as `button`, `a`, and `input`.
+Provide visible focus, field labels, dialog focus management, and accessible names
+for icon buttons. Status indicators include text as well as color.
 
-## 7. Екрани и маршрути
+## 7. Screens and Routes
 
-| Маршрут | Екран | Основна цел |
+| Route | Screen | Main purpose |
 |---|---|---|
-| `/` | Пренасочване към `/dashboard` | Единна начална точка |
-| `/dashboard` | Обзор | Обобщения, избран курс, налични пратки и закъснения |
-| `/shipments` | Работа с пратки | Преглед на наличните справки и търсене по ID |
-| `/shipments/new` | Нова пратка | Форма за създаване |
-| `/shipments/:id` | Детайли | Данни, статус и разпределяне към курс |
-| `/trips` | Курсове | Списък, създаване и редактиране |
-| `/trips/:id` | Детайли за курс | Превозно средство, екипаж, разпределени пратки |
-| `/customers` | Клиенти | Наличният Customer CRUD |
-| `/employees` | Екипаж | Планирано управление след предоставяне на API |
-| `/vehicles` | Автопарк | Планирано управление след предоставяне на API |
-| `*` | Страницата не е намерена | Навигация обратно към приложението |
+| `/` | Redirect to `/dashboard` | Consistent entry point |
+| `/dashboard` | Overview | Summaries, selected trip, available shipments, and delays |
+| `/shipments` | Shipment workspace | Available reports and lookup by ID |
+| `/shipments/new` | New shipment | Creation form |
+| `/shipments/:id` | Shipment details | Data, status, and trip assignment |
+| `/trips` | Trips | Listing, creation, and editing |
+| `/trips/:id` | Trip details | Vehicle, crew, and assigned shipments |
+| `/customers` | Customers | Existing Customer CRUD |
+| `/employees` | Crew | Planned management after the API is available |
+| `/vehicles` | Fleet | Planned management after the API is available |
+| `*` | Page not found | Navigation back to the application |
 
-Общият списък на пратки, търсенето по tracking номер, редактирането на служители
-и превозни средства изискват допълнителни backend endpoints. Дотогава показваме
-само реално поддържаните операции или ясно означен демонстрационен изглед.
-Навигацията за бъдещи модули не трябва да води до привидно работещи форми.
+A general shipment list, tracking-number search, and employee/vehicle management
+require additional backend endpoints. Until those exist, expose supported
+operations or a clearly labeled demonstration view. Navigation for planned modules
+must not lead to forms that appear to save data when no operation exists.
 
-## 8. Реално наличен API договор
+## 8. Available API Contract
 
-Тази таблица отразява текущата съвместена реализация. Java Controller и DTO
-класовете са източникът за точните request/response полета.
+This table reflects the current merged implementation. Java Controller and DTO
+classes are the source of truth for exact request and response fields.
 
-| Метод и адрес | Употреба |
+| Method and endpoint | Purpose |
 |---|---|
-| `GET /api/customers` | Списък на клиенти |
-| `POST /api/customers` | Създаване на клиент |
-| `GET /api/customers/{id}` | Прочит на клиент |
-| `PUT /api/customers/{id}` | Редактиране на клиент |
-| `DELETE /api/customers/{id}` | Физическо изтриване в текущата реализация |
-| `GET /api/trips` | Активни курсове |
-| `POST /api/trips` | Нов курс |
-| `GET /api/trips/{id}` | Детайли за активен курс |
-| `PUT /api/trips/{id}` | Редактиране на курс |
-| `DELETE /api/trips/{id}` | Деактивиране на курс |
-| `PUT /api/trips/{id}/employees/{employeeId}` | Добавяне на активен служител |
-| `DELETE /api/trips/{id}/employees/{employeeId}` | Премахване от екипажа |
-| `POST /api/shipments` | Нова пратка |
-| `GET /api/shipments/{id}` | Детайли за пратка |
-| `PUT /api/shipments/{id}/trip` | Основен endpoint за разпределяне |
-| `GET /api/trips/{id}/shipments` | Ограничена справка за пратките в курс |
-| `GET /api/shipments/trip/{tripId}` | Подробна служебна справка за пратките в курс |
-| `GET /api/shipments/overdue?page=0&size=20` | Закъснели пратки; size от 1 до 100 |
+| `GET /api/customers` | List customers |
+| `POST /api/customers` | Create a customer |
+| `GET /api/customers/{id}` | Read a customer |
+| `PUT /api/customers/{id}` | Update a customer |
+| `DELETE /api/customers/{id}` | Hard-delete a customer in the current implementation |
+| `GET /api/trips` | List active trips |
+| `POST /api/trips` | Create a trip |
+| `GET /api/trips/{id}` | Read an active trip |
+| `PUT /api/trips/{id}` | Update a trip |
+| `DELETE /api/trips/{id}` | Deactivate a trip |
+| `PUT /api/trips/{id}/employees/{employeeId}` | Add an active employee to the crew |
+| `DELETE /api/trips/{id}/employees/{employeeId}` | Remove an employee from the crew |
+| `POST /api/shipments` | Create a shipment |
+| `GET /api/shipments/{id}` | Read shipment details |
+| `PUT /api/shipments/{id}/trip` | Primary assignment endpoint |
+| `GET /api/trips/{id}/shipments` | Limited projection of shipments assigned to a trip |
+| `GET /api/shipments/trip/{tripId}` | Detailed staff report for a trip's shipments |
+| `GET /api/shipments/overdue?page=0&size=20` | Overdue shipments; size from 1 to 100 |
 
-За новия frontend използваме основния endpoint за разпределяне. Старият маршрут
-`PUT /api/shipments/{shipmentId}/trip/{tripId}?expectedVersion=...` се пази за
-съвместимост, но не е основният ни frontend договор.
+Use the primary assignment endpoint in the new frontend. The legacy route
+`PUT /api/shipments/{shipmentId}/trip/{tripId}?expectedVersion=...` remains for
+compatibility but is not the preferred frontend contract.
 
-Все още няма HTTP endpoints за общ списък на пратките, статусни промени,
-история, публично tracking търсене, QR изображение, CRUD на служители/превозни
-средства или dashboard статистики. `ShipmentLoadingService` е service операция,
-а не HTTP endpoint. Не симулираме успешни операции вместо липсващо API.
+HTTP endpoints for a general shipment list, status changes, history, public tracking
+lookup, QR images, employee/vehicle CRUD, and dashboard statistics are not available
+yet. `ShipmentLoadingService` is a service operation, not an HTTP endpoint.
+Do not simulate successful operations in place of a missing API.
 
-### Пример: създаване на пратка
+### Example: Create a Shipment
 
 ```json
 {
@@ -255,10 +256,10 @@ feature hook. Споделени компоненти се изнасят в `co
 }
 ```
 
-`trackingNumber` се генерира от сървъра и не се изпраща от формата.
-POST връща `201`, а отговорът съдържа ID, tracking номер, статус и version.
+The server generates `trackingNumber`; the form does not send it.
+POST returns `201`, with an ID, tracking number, status, and version in the response.
 
-### Пример: разпределяне към курс
+### Example: Assign a Shipment to a Trip
 
 ```text
 PUT /api/shipments/12/trip
@@ -271,164 +272,163 @@ PUT /api/shipments/12/trip
 }
 ```
 
-Версията се взема от последния отговор за пратката; не се фиксира постоянно на 0.
+Take the version from the latest shipment response; never hardcode it to 0.
 
-### Полета за курс
+### Trip Fields
 
 `TripRequest`: `origin`, `destination`, `departureAt`, `expectedArrivalAt`, `vehicleId`.
-`TripResponse` допълва `id`, `version`, `deleted`, `employeeIds` и `vehicleId`.
-Не добавяме самостоятелен TripStatus или tracking номер на курс от картинката.
-Пристигането трябва да е след тръгването. Съществуващ стар курс може да няма
-превозно средство; новите заявки за създаване/редактиране изискват `vehicleId`.
+`TripResponse` also exposes `id`, `version`, `deleted`, and `employeeIds`.
+Do not introduce a separate TripStatus or trip tracking number based on the mockup.
+Arrival must follow departure. A legacy trip may have no vehicle; new create/update
+requests require `vehicleId`.
 
-## 9. HTTP клиент и обработка на грешки
+## 9. HTTP Client and Error Handling
 
-Всички заявки минават през `services/apiClient.js`. Компонентите не изграждат
-самостоятелно backend URL адреси. Клиентът:
+Route every request through `services/apiClient.js`. Components do not construct
+their own backend URLs. The client:
 
-- Задава `Accept: application/json`; при JSON body задава и `Content-Type`.
-- Проверява `response.ok`; `fetch` не хвърля автоматично при HTTP 4xx/5xx.
-- Обработва `204` без опит за `response.json()`.
-- Поддържа отказване с `AbortController` при смяна на екран/заявка.
-- Нормализира грешките до общ формат със status и съобщение, включително при
-  не-JSON отговор. Не предполага, че всички backend грешки вече са ProblemDetail.
+- Sets `Accept: application/json` and adds `Content-Type` when sending JSON.
+- Checks `response.ok`; `fetch` does not throw automatically for HTTP 4xx/5xx.
+- Handles `204` without calling `response.json()`.
+- Supports cancellation with `AbortController` when the screen or request changes.
+- Normalizes errors into a shared structure containing status and message,
+  including non-JSON responses. Do not assume every backend error is ProblemDetail.
 
-| Ситуация | Поведение в UI |
+| Situation | UI behavior |
 |---|---|
-| `400` | Съобщение за невалидни данни; полеви грешки, когато API ги предоставя |
-| `404` | Записът не е намерен или вече не е активен |
-| `409` | Обяснение за конфликт; опция за презареждане на актуалните данни |
-| `5xx` или мрежова грешка | Ясно съобщение и ръчно повторение |
-| Бъдещи `401/403` | Обработват се при добавяне на действителна автентикация |
+| `400` | Invalid-input message; field errors when supplied by the API |
+| `404` | Record not found or no longer active |
+| `409` | Conflict explanation and an option to reload current data |
+| `5xx` or network failure | Clear message and manual retry |
+| Future `401/403` | Handle when actual authentication is introduced |
 
-При `409` не повтаряме автоматично променяща заявка и не презаписваме новата
-версия с клиентска стойност. Формите пазят въведеното и позволяват повторен
-преглед. По време на submit основният бутон се блокира срещу двойно натискане.
+On `409`, do not automatically retry a mutating request or replace the current
+version with a client-generated value. Preserve form input and allow review.
+Disable the submit button while a request is pending to prevent double submission.
 
-## 10. Конфигурация и .env
+## 10. Configuration and .env
 
-Backend тайните остават само в игнорирания `smart-shipment-tracking/.env`.
-Frontend-ът никога не получава DB парола, частен API ключ или signing secret.
-CRA вгражда `REACT_APP_*` стойностите в публичния JavaScript bundle: frontend
-`.env` служи за публична конфигурация, не за скриване на тайни.
+Backend secrets remain in the ignored `smart-shipment-tracking/.env` file.
+Never expose database passwords, private API keys, or signing secrets to the frontend.
+CRA embeds `REACT_APP_*` values in the public JavaScript bundle: frontend `.env`
+files provide public configuration, not secret storage.
 
-Примерно `frontend/.env.example`:
+Example `frontend/.env.example`:
 
 ```dotenv
 PORT=3000
 REACT_APP_API_BASE_URL=/api
 ```
 
-Локалните стойности могат да са в `frontend/.env.local`. При настройката на
-frontend-а включваме `.env`, `.env.*` в неговия `.gitignore`, с изключение
-`!.env.example`. След промяна на средата рестартираме CRA dev сървъра.
+Local values may live in `frontend/.env.local`. During frontend setup, ignore
+`.env` and `.env.*` in its `.gitignore`, with `!.env.example` as an exception.
+Restart the CRA development server after changing environment variables.
 
-За development добавяме поле в `frontend/package.json`, като запазваме останалите:
+For development, add this field to `frontend/package.json`, preserving its other fields:
 
 ```json
 "proxy": "http://localhost:8080"
 ```
 
-API клиентът използва base `/api`, а отделните услуги подават например `/trips`,
-така че крайният URL да е `/api/trips`. Не дублираме `/api/api` и не заобикаляме
-proxy-то с абсолютен URL в отделен компонент. Backend адресът тук е публична
-локална конфигурация, а не тайна.
+The API client uses `/api` as its base; individual services pass paths such as
+`/trips`, producing `/api/trips`. Avoid `/api/api` and component-specific absolute
+URLs that bypass the proxy. This backend address is public local configuration.
 
-CRA proxy работи само при `npm start`. При публикуване осигуряваме `/api` reverse
-proxy или отделно договорен backend origin и CORS; не разчитаме на dev proxy-то.
+The CRA proxy applies only to `npm start`. Deployment requires an `/api` reverse
+proxy or an agreed separate backend origin and CORS configuration.
 
-## 11. Статуси, дати, тегло и капацитет
+## 11. Statuses, Dates, Weight, and Capacity
 
-Общата карта на статусите е в `constants/shipmentStatuses.js`:
+Keep the shared status mapping in `constants/shipmentStatuses.js`:
 
-| Backend стойност | Надпис | Визуално представяне |
+| Backend value | Bulgarian UI label | Visual treatment |
 |---|---|---|
-| `CREATED` | Създадена | Неутрално |
-| `ACCEPTED` | Приета | Синьо |
-| `LOADED` | Натоварена | Виолетово |
-| `IN_TRANSIT` | В транспорт | Тюркоазено |
-| `DELIVERED` | Доставена | Зелено |
+| `CREATED` | Създадена | Neutral |
+| `ACCEPTED` | Приета | Blue |
+| `LOADED` | Натоварена | Purple |
+| `IN_TRANSIT` | В транспорт | Turquoise |
+| `DELIVERED` | Доставена | Green |
 
-Последователността остава `CREATED → ACCEPTED → LOADED → IN_TRANSIT → DELIVERED`.
-Закъснението е отделен признак от очаквания срок, не нов enum статус.
-Бизнес преходите и проверката за капацитет се изпълняват от backend-а.
+The sequence remains `CREATED → ACCEPTED → LOADED → IN_TRANSIT → DELIVERED`.
+An overdue condition is derived from the deadline; it is not a new enum status.
+The backend enforces business transitions and capacity limits.
 
-- Пристигналите от API timestamps са ISO 8601; работим с действителния offset.
-- Формите превръщат избраните локални дата/час към UTC ISO преди изпращане.
-- Показваме датите с общ formatter за `bg-BG` и ясно избрана потребителска зона.
-- Не заковаваме ръчно UTC+2 или UTC+3 и не сравняваме форматирани текстове.
-- Тегло и капацитет се показват в kg; празна стойност не се заменя автоматично с 0.
-- Прогресът за капацитет е сбор на всички разпределени тегла / capacityKg.
-- Когато липсва достъп до capacityKg, показваме „Няма данни“, вместо да измисляме
-  лимит или да броим само пратките със статус LOADED.
+- API timestamps use ISO 8601; respect the actual offset.
+- Convert selected local date/time values to UTC ISO before submitting forms.
+- Display dates through a shared `bg-BG` formatter and an explicit user time zone.
+- Do not hardcode UTC+2/UTC+3 or compare formatted date strings.
+- Display weight and capacity in kg; do not automatically treat missing values as 0.
+- Capacity usage is the sum of all assigned shipment weights divided by capacityKg.
+- When capacityKg is unavailable, show the Bulgarian label “Няма данни” (No data)
+  instead of inventing a limit or counting only shipments with status LOADED.
 
-## 12. Карта, показатели и демонстрационни данни
+## 12. Map, Metrics, and Demonstration Data
 
-Първата карта може да бъде схематична визуализация на избран маршрут. За реална
-географска карта отделно се избират библиотека, доставчик на tiles и необходимите
-права/атрибуция. Не обещаваме живо GPS проследяване без съответния API.
+The initial map may be a schematic visualization of the selected route. A real
+geographic map requires a separate choice of library, tile provider, and applicable
+permissions/attribution. Live GPS tracking requires a corresponding API.
 
-Dashboard стойностите идват от реални справки. Ако endpoint липсва, показваме
-„Няма данни“ или изрично означен demo режим. Не използваме числата от макета като
-реални статистики и не извеждаме общ брой от една страница overdue резултати.
+Dashboard values come from real reports. When an endpoint is unavailable, display
+“Няма данни” (No data) or a clearly labeled demo mode. Do not treat mockup numbers
+as actual statistics or derive a global count from one page of overdue results.
 
-Примерните данни се държат отделно от API услугите. Не ги включваме автоматично
-след мрежова грешка. Имена, дати, QR кодове, проценти и маршрутни номера от
-макета са илюстративни; наличието им на снимката не означава реализиран backend.
+Keep sample data separate from API services. Do not automatically substitute it
+after a network failure. Names, dates, QR codes, percentages, and route numbers in
+the mockup are illustrative; their appearance does not imply an implemented backend.
 
-## 13. Общи правила за код и екипна работа
+## 13. Coding and Collaboration Rules
 
-- Компоненти и страници: PascalCase; hooks: `use...`; функции/променливи: camelCase.
-- CSS Module: `ComponentName.module.css`, до компонента.
-- Не копираме таблици, статусни цветове, модали и HTTP логика между модулите.
-- Страниците организират данни и действия; общите UI компоненти не познават API.
-- Всеки екран има loading, empty, error и success състояния.
-- Разграничаваме реално празен резултат от невъзможност да се зареди резултатът.
-- Няма директна връзка React → PostgreSQL; достъпът до данни е през Spring REST API.
-- Няма страници/бутони за вход с фиктивна защита; автентикацията е отделен договор.
-- Общите tokens, layout, router, API клиент и зависимости се променят координирано.
+- Components/pages: PascalCase; hooks: `use...`; functions/variables: camelCase.
+- CSS Module: `ComponentName.module.css`, next to its component.
+- Reuse tables, status colors, dialogs, and HTTP logic across modules.
+- Pages coordinate data and actions; shared UI components do not know the API.
+- Every screen handles loading, empty, error, and success states.
+- Distinguish an empty result from a failed request.
+- React accesses data through the Spring REST API, never directly through PostgreSQL.
+- Authentication is a separate contract; do not implement login UI with pretend protection.
+- Coordinate changes to shared tokens, layout, routing, the API client, and dependencies.
 
-Работим в отделни feature клонове. PR описва екрана, използваните endpoints,
-начина на проверка и съдържа screenshot при визуална промяна. Авторът отбелязва
-липсващи backend зависимости. SQL промени и промени в DTO се съгласуват между
-frontend и backend, като същият PR актуализира този документ при нужда.
+Use separate feature branches. A PR describes the screen, endpoints, and validation
+performed, and includes screenshots for visual changes. Identify missing backend
+dependencies. Coordinate SQL and DTO changes between frontend and backend, updating
+this document in the same PR where necessary.
 
-## 14. Ред на реализация
+## 14. Implementation Order
 
-1. CRA проект, общи tokens, layout, router и API клиент.
-2. Customer CRUD като първа завършена връзка React → backend.
-3. Курсове: списък, форми, детайли и съществуващите действия за екипажа.
-4. Създаване/прочит на пратка и разпределяне към курс с expectedVersion.
-5. Закъснели пратки с реална пагинация.
-6. Dashboard на база наличните данни и схематичен маршрут.
-7. Допълване на backend договорите за общ списък, tracking, история, статусни
-   промени, служители, превозни средства и статистики; след това съответните UI.
-8. Responsive преглед, достъпност и финално визуално съгласуване с вариант 2.
+1. CRA project, shared tokens, layout, router, and API client.
+2. Customer CRUD as the first complete React-to-backend integration.
+3. Trips: listing, forms, details, and existing crew actions.
+4. Shipment creation/lookup and trip assignment using expectedVersion.
+5. Overdue shipments with actual pagination.
+6. Dashboard based on available data and a schematic route.
+7. Extend backend contracts for general listing, tracking, history, status changes,
+   employees, vehicles, and statistics; then implement the corresponding UI.
+8. Review responsive behavior, accessibility, and visual consistency with Option 2.
 
-## 15. Кога една frontend задача е завършена
+## 15. Definition of Done
 
-- Следва избрания тъмен дизайн и използва общите компоненти/tokens.
-- Работи с договорения endpoint и точните DTO полета.
-- Има подходящи loading/empty/error състояния и валидация на формата.
-- Обработва `409`, когато операцията може да срещне бизнес или version конфликт.
-- Използва семантични контроли и работи с клавиатура и на тесен екран.
-- Няма нови console errors, предупредителни React key съобщения или счупени заявки.
-- `npm run build` минава. Смислените тестове за променените поведения минават:
+- Follows the selected dark design and uses shared components/tokens.
+- Uses the agreed endpoint and exact DTO fields.
+- Includes appropriate loading/empty/error states and form validation.
+- Handles `409` where business or version conflicts can occur.
+- Uses semantic controls and works with a keyboard and on narrow screens.
+- Introduces no console errors, React key warnings, or broken requests.
+- `npm run build` succeeds, and meaningful tests for changed behavior pass:
 
 ```powershell
 npm test -- --watchAll=false
 npm run build
 ```
 
-Тестовете проверяват потребителско поведение, например submit, валидация,
-празна справка и реакция при 409. Не се изискват тестове за всяка статична украса.
+Tests cover user behavior such as submission, validation, empty reports, and
+responses to 409 conflicts. Tests are not required for every static decoration.
 
-## 16. Официални източници за настройката
+## 16. Official Setup References
 
 - [Create React App — Getting Started](https://create-react-app.dev/docs/getting-started/)
 - [React — Sunsetting Create React App](https://react.dev/blog/2025/02/14/sunsetting-create-react-app)
 - [CRA — Environment Variables](https://create-react-app.dev/docs/adding-custom-environment-variables/)
 - [CRA — Development Proxy](https://create-react-app.dev/docs/proxying-api-requests-in-development/)
 
-Този документ описва плана и общите правила. Самото React приложение се създава
-в следваща задача; с добавянето на документа не е изпълняван CRA генератор.
+This document describes the plan and shared guidelines. Creating the React
+application is a separate task; adding this document does not run the CRA generator.
