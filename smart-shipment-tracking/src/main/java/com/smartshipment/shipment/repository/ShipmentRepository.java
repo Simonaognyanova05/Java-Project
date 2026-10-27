@@ -15,6 +15,8 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
 public interface ShipmentRepository extends JpaRepository<Shipment, Long> {
+    Optional<Shipment> findByTrackingNumber(String trackingNumber);
+
     @Lock(LockModeType.PESSIMISTIC_WRITE)
     @Query("select s from Shipment s where s.id = :id")
     Optional<Shipment> findForUpdate(@Param("id") Long id);
