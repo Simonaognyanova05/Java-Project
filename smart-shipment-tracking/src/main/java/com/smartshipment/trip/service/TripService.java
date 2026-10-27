@@ -1,6 +1,7 @@
 package com.smartshipment.trip.service;
 
 import java.util.List;
+import java.util.Objects;
 
 import com.smartshipment.employee.entity.Employee;
 import com.smartshipment.employee.repository.EmployeeRepository;
@@ -55,6 +56,9 @@ public class TripService {
     }
 
     public TripResponse create(@Valid TripRequest request) {
+        if (request.expectedVersion() != null) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Trip version is assigned by the server");
+        }
         Vehicle vehicle = getActiveVehicle(request.vehicleId());
         Trip trip = tripMapper.toEntity(request);
         trip.setVehicle(vehicle);
@@ -63,6 +67,13 @@ public class TripService {
 
     public TripResponse update(@Positive Long id, @Valid TripRequest request) {
         Trip trip = getForUpdate(id);
+        if (request.expectedVersion() == null) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "expectedVersion is required");
+        }
+        if (!Objects.equals(trip.getVersion(), request.expectedVersion())) {
+            throw new ResponseStatusException(HttpStatus.CONFLICT,
+                    "Trip was modified; reload it before updating");
+        }
         Vehicle vehicle = getActiveVehicle(request.vehicleId());
         if (shipments.totalAssignedWeight(id).compareTo(vehicle.getCapacityKg()) > 0) {
             throw new ResponseStatusException(HttpStatus.CONFLICT, "Vehicle cannot carry assigned shipment weight");

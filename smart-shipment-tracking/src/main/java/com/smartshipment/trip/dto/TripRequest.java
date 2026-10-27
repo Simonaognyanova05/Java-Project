@@ -9,12 +9,15 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 import jakarta.validation.constraints.Positive;
+import jakarta.validation.constraints.PositiveOrZero;
 
 public record TripRequest(
         @NotBlank @Size(max = 255) String origin,
         @NotBlank @Size(max = 255) String destination,
         @NotNull Instant departureAt,
-        @NotNull Instant expectedArrivalAt, @NotNull @Positive Long vehicleId) {
+        @NotNull Instant expectedArrivalAt,
+        @NotNull @Positive Long vehicleId,
+        @PositiveOrZero Long expectedVersion) {
 
     @JsonIgnore
     @AssertTrue(message = "Expected arrival must be after departure")

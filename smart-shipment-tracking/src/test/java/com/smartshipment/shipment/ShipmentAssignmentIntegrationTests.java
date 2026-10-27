@@ -153,7 +153,8 @@ class ShipmentAssignmentIntegrationTests {
                 .isInstanceOfSatisfying(ResponseStatusException.class,
                         error -> assertThat(error.getStatusCode()).isEqualTo(HttpStatus.CONFLICT));
         assertThatThrownBy(() -> tripService.update(target.getId(), new TripRequest("Sofia", "Vienna",
-                target.getDepartureAt(), target.getExpectedArrivalAt(), small.getVehicle().getId())))
+                target.getDepartureAt(), target.getExpectedArrivalAt(), small.getVehicle().getId(),
+                target.getVersion())))
                 .isInstanceOfSatisfying(ResponseStatusException.class,
                         error -> assertThat(error.getStatusCode()).isEqualTo(HttpStatus.CONFLICT));
         assertThat(target.isDeleted()).isFalse();
