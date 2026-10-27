@@ -35,10 +35,15 @@ class TripCrudIntegrationTests {
     }
 
     private String request(Long vehicleId, String origin) {
+        return request(vehicleId, origin, null);
+    }
+
+    private String request(Long vehicleId, String origin, Long expectedVersion) {
+        String versionField = expectedVersion == null ? "" : ", \"expectedVersion\": " + expectedVersion;
         return """
                 {"origin":"%s","destination":"Vienna","departureAt":"2027-01-01T08:00:00Z",
-                 "expectedArrivalAt":"2027-01-02T08:00:00Z","vehicleId":%d}
-                """.formatted(origin, vehicleId);
+                 "expectedArrivalAt":"2027-01-02T08:00:00Z","vehicleId":%d%s}
+                """.formatted(origin, vehicleId, versionField);
     }
 
     @Test
@@ -58,7 +63,7 @@ class TripCrudIntegrationTests {
         mockMvc.perform(get("/api/trips")).andExpect(status().isOk())
                 .andExpect(jsonPath("$[?(@.id == " + id + ")]").isNotEmpty());
         mockMvc.perform(put(location).contentType(MediaType.APPLICATION_JSON)
-                        .content(request(vehicle.getId(), "Plovdiv")))
+                        .content(request(vehicle.getId(), "Plovdiv", 0L)))
                 .andExpect(status().isOk()).andExpect(jsonPath("$.origin").value("Plovdiv"))
                 .andExpect(jsonPath("$.version").value(1));
         String crewPath = location + "/employees/" + employee.getId();
