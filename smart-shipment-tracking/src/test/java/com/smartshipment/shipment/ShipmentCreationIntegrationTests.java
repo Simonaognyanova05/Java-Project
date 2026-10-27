@@ -123,7 +123,7 @@ class ShipmentCreationIntegrationTests {
     }
 
     @Test
-    void legacyAssignmentEndpointUsesVersionAndCapacityGuards() throws Exception {
+    void assignmentEndpointUsesVersionAndCapacityGuards() throws Exception {
         long customerId = customer();
         String first = create(customerId);
         String second = create(customerId);
@@ -133,15 +133,16 @@ class ShipmentCreationIntegrationTests {
             trip.setVehicle(vehicle);
             return trips.saveAndFlush(trip).getId();
         });
-        String endpoint = first + "/trip/" + tripId;
-        mockMvc.perform(put(endpoint)).andExpect(status().isBadRequest());
-        mockMvc.perform(put(endpoint).param("expectedVersion", "0")).andExpect(status().isOk())
+        String endpoint = first + "/trip";
+        String assignment = "{\"tripId\":" + tripId + ",\"expectedVersion\":0}";
+        mockMvc.perform(put(endpoint).contentType(MediaType.APPLICATION_JSON).content(assignment))
+                .andExpect(status().isOk())
                 .andExpect(jsonPath("$.version").value(1));
-        mockMvc.perform(put(endpoint).param("expectedVersion", "0")).andExpect(status().isConflict());
-        mockMvc.perform(put(second + "/trip/" + tripId).param("expectedVersion", "0"))
+        mockMvc.perform(put(endpoint).contentType(MediaType.APPLICATION_JSON).content(assignment))
                 .andExpect(status().isConflict());
-        mockMvc.perform(get("/api/shipments/trip/" + tripId)).andExpect(status().isOk())
-                .andExpect(jsonPath("$.length()").value(1));
+        mockMvc.perform(put(second + "/trip").contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"tripId\":" + tripId + ",\"expectedVersion\":0}"))
+                .andExpect(status().isConflict());
         mockMvc.perform(get("/api/trips/" + tripId + "/shipments")).andExpect(status().isOk())
                 .andExpect(jsonPath("$.length()").value(1));
     }
