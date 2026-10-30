@@ -38,8 +38,8 @@ contracts or add backend dependencies to placeholder routes.
 | `/shipments` | Shipment workspace placeholder |
 | `/shipments/new` | Existing shipment creation form |
 | `/shipments/:id` | Shipment details placeholder |
-| `/trips` | Trip list placeholder |
-| `/trips/:id` | Trip details placeholder |
+| `/trips` | Active trips with create/edit/deactivate dialogs |
+| `/trips/:id` | Real trip details, editing and deactivation |
 | `/customers` | Customer CRUD with API-backed forms and delete confirmation |
 | `/employees` | Crew management placeholder |
 | `/vehicles` | Fleet management placeholder |
@@ -154,3 +154,26 @@ constraints can reject deletion of customers referenced by shipments.
 Customer feature tests exercise real API services/client with mocked fetch;
 they do not write to a running database. Routing and layout tests substitute
 the customer page so those checks stay independent of backend requests.
+
+## Trip management
+
+/trips lists active courses. Forms create and edit routes, local departure/arrival
+dates and vehicleId; /trips/:id displays the current trip and assigned employee IDs.
+The shared Modal/Button/FormField/DataTable components follow Option 2.
+Trips are deactivated via DELETE, not permanently removed. The backend rejects
+deactivation when undelivered shipments exist.
+
+Vehicle selection currently uses an explicitly labeled ID input because there is
+no vehicle-list HTTP endpoint. Supply an existing active vehicle ID; no simulated
+fleet options are provided. Vehicle/crew CRUD and shipment assignment remain
+separate features.
+
+Creation omits expectedVersion. Editing reads the latest trip, preserves timestamp
+precision and submits its actual version. On 409, entered data stays visible and
+the user chooses when to reload; no automatic retry or overwrite occurs.
+Form lengths and schedule ordering match TripRequest. Date display uses bg-BG and
+the stated browser time zone; submitted timestamps are UTC. Reads are cancellable.
+
+Trip feature tests cover real service/client calls through mocked fetch, including
+creation, updates, zero/missing/stale versions, validation, failed/successful
+deactivation, detail links, retry and cancellation.

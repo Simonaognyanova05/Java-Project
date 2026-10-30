@@ -14,6 +14,14 @@ jest.mock('../../features/customers/CustomersPage', () => {
   return function CustomersRoute() { return <h1>Клиенти</h1>; };
 });
 
+jest.mock('../../features/trips/TripsPage', () => {
+  return function TripsRoute() { return <h1>Курсове</h1>; };
+});
+jest.mock('../../features/trips/TripDetailsPage', () => {
+  const { useParams } = require('react-router-dom');
+  return function TripDetailsRoute() { return <h1>Курс #{useParams().id}</h1>; };
+});
+
 function renderRoute(path) {
   return render(<MemoryRouter initialEntries={[path]}><AppRoutes /></MemoryRouter>);
 }

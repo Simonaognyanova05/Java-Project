@@ -269,7 +269,9 @@ Take the version from the latest shipment response; never hardcode it to 0.
 
 ### Trip Fields
 
-`TripRequest`: `origin`, `destination`, `departureAt`, `expectedArrivalAt`, `vehicleId`.
+`TripRequest`: `origin`, `destination`, `departureAt`, `expectedArrivalAt`, `vehicleId`,
+and `expectedVersion`. Create omits expectedVersion; update must send the version
+from the latest TripResponse. A 409 requires explicit review/reload.
 `TripResponse` also exposes `id`, `version`, `deleted`, and `employeeIds`.
 Do not introduce a separate TripStatus or trip tracking number based on the mockup.
 Arrival must follow departure. A legacy trip may have no vehicle; new create/update
@@ -434,7 +436,7 @@ AppRoutes.js centralizes the routes listed in section 7, including the root redi
 to /dashboard, dynamic shipment/trip IDs, and a not-found recovery page.
 
 The existing /shipments/new form and its service integrations are preserved.
-Customer management is implemented (section 21). The remaining feature routes render explicitly labeled preparation screens;
+Customer management (section 21) and Trip CRUD (section 22) are implemented. The remaining feature routes render explicitly labeled preparation screens;
 they do not represent completed CRUD or make simulated backend requests. The
 shared application layout is now implemented (section 18); subsequent API-backed screens remain separate tasks. Temporary preparation screens share RoutePlaceholder.
 
@@ -522,3 +524,35 @@ deletion retains the row. Only successful server mutations change displayed data
 Read requests use AbortController; pending writes prevent duplicate submissions
 and dismissal. Customer tests mock fetch at the HTTP boundary and assert endpoint
 paths, methods, request bodies and visible results, including failure recovery.
+
+## 22. Trip CRUD Interface
+
+/trips lists active trips and provides create/edit dialogs and deactivation
+confirmation. /trips/:id reads real detail data and exposes editing/deactivation.
+tripApi uses GET /api/trips, GET /api/trips/{id}, POST, PUT and DELETE through
+the shared client. No TripStatus or invented tracking number is introduced.
+Crew IDs are shown as returned by the API; crew/assignment management are separate
+features.
+
+The form matches TripRequest: origin and destination are required (255 characters),
+departure/expected arrival are required, arrival must follow departure, and vehicleId
+must identify an active vehicle. There is no vehicle listing HTTP endpoint yet.
+The current form explicitly accepts a vehicle ID; it does not invent vehicle options.
+The backend validates vehicle existence and capacity.
+
+Create omits expectedVersion. Edit fetches the current record and sends its actual
+version, including zero when returned by the server. A missing version blocks save.
+409 preserves the draft and blocks resubmission until the user explicitly reloads
+the current record; a capacity conflict also requires reviewing the vehicle.
+Reload warns that it replaces entered values. Requests are never auto-retried.
+
+datetime-local fields show browser-local dates in the stated IANA time zone and
+submit UTC ISO timestamps. Seconds/milliseconds are preserved on edit. Shared
+dateFormat utilities use bg-BG display formatting and an explicit browser time zone.
+No fixed UTC offset or future-departure rule is assumed.
+
+DELETE deactivates a course, retaining historical data. A course with undelivered
+shipments receives a 409 and stays visible. 404 offers recovery. Pending writes
+prevent duplicate submissions/dismissal; reads cancel on unmount. Tests exercise
+real services/client with mocked fetch and assert payloads, fresh versions, conflict
+recovery, schedules, detail navigation and deactivation outcomes.
