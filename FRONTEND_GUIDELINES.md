@@ -430,5 +430,22 @@ responses to 409 conflicts. Tests are not required for every static decoration.
 - [CRA — Environment Variables](https://create-react-app.dev/docs/adding-custom-environment-variables/)
 - [CRA — Development Proxy](https://create-react-app.dev/docs/proxying-api-requests-in-development/)
 
-This document describes the plan and shared guidelines. Creating the React
-application is a separate task; adding this document does not run the CRA generator.
+The CRA application now exists in frontend/. See frontend/README.md for the current
+implementation status and development commands.
+
+## 17. CRA Foundation and Routing Status
+
+The existing CRA application and installed React Router dependency are reused.
+src/index.js mounts src/app/App.js, which owns BrowserRouter and global styles.
+AppRoutes.js centralizes the routes listed in section 7, including the root redirect
+to /dashboard, dynamic shipment/trip IDs, and a not-found recovery page.
+
+The existing /shipments/new form and its service integrations are preserved.
+Other feature routes currently render explicitly labeled preparation screens;
+they do not represent completed CRUD or make simulated backend requests. The
+permanent application layout, Sidebar, Header, and subsequent API-backed screens
+remain separate tasks. Temporary preparation screens share RoutePlaceholder.
+
+Feature directories and shared extension points follow section 4. src/App.js is
+a compatibility re-export; new application configuration belongs in src/app/.
+Router behavior is tested with MemoryRouter and does not require a running backend.
