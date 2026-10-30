@@ -138,41 +138,34 @@ real use.
 
 ## 5. Colors, Typography, and Spacing
 
-Initial shared tokens for `src/styles/tokens.css`:
+The source of truth is [tokens.css](frontend/src/styles/tokens.css). Component
+CSS Modules consume these variables; add shared color roles there instead of
+introducing a separate palette for each feature.
 
-```css
-:root {
-  --color-bg: #08131d;
-  --color-surface: #101f2b;
-  --color-surface-hover: #162b39;
-  --color-border: #243b4b;
-  --color-text: #f3f6fa;
-  --color-text-muted: #a5b8ca;
-  --color-primary: #36e6bc;
-  --color-on-primary: #06231c;
-  --color-warning: #ffab63;
-  --color-danger: #ff7785;
-  --color-info: #67b8ff;
+| Role | Token / value |
+|---|---|
+| Canvas / panels | --color-bg: #08131d / --color-surface: #101f2b |
+| Primary action | --color-primary: #36e6bc, dark --color-on-primary text |
+| Text / secondary text | --color-text: #f3f6fa / --color-text-muted: #a5b8ca |
+| Warning / error / information | --color-warning / --color-danger / --color-info |
+| Shipment statuses | --color-status-created, -accepted, -loaded, -in-transit, -delivered |
+| Font | --font-body: Segoe UI with system and Arial fallbacks; Cyrillic supported |
+| Type scale | --font-size-xs/sm/md/lg/xl/2xl: 12/14/16/20/24/32px at default root size |
+| Weights | --font-weight-regular/medium/semibold/bold: 400/500/600/700 |
+| Spacing | --space-1 through -9 and -12: 4/8/12/16/20/24/28/32/36/48px |
+| Corners | --radius-sm/md/lg: 6/10/16px |
+| Controls / sidebar | --control-height: 44px / --sidebar-width: 230px |
 
-  --font-body: "Inter", "Segoe UI", sans-serif;
-  --radius-sm: 6px;
-  --radius-md: 10px;
-  --radius-lg: 16px;
+Body text and form inputs use 16px, labels and secondary content use 14px,
+supporting captions use 12px, and page headings use 24?32px. Sizes use rem for
+user font preferences. The system font stack needs no external font request.
+Use semantic surface, border, subtle-background, focus, shadow, and motion tokens
+for active, hover, error, success, and information states. Status colors remain
+paired with visible labels; tokens alone do not implement status components.
 
-  --space-1: 4px;
-  --space-2: 8px;
-  --space-3: 12px;
-  --space-4: 16px;
-  --space-6: 24px;
-  --space-8: 32px;
-  --sidebar-width: 208px;
-}
-```
-
-Use 16px body text, 14px table and secondary text, and 24–32px headings.
-If Inter is included, use a version with Cyrillic support and follow its license.
-All components use the shared tokens. Adjust colors and dimensions centrally
-rather than introducing a separate palette for each page.
+The shared layout, preparation screens, and shipment form use this baseline.
+Inputs retain visible keyboard focus, native selects follow the dark color scheme,
+and reduced-motion preferences remove decorative transitions and spinner motion.
 
 ## 6. Layout and Responsive Behavior
 
@@ -276,7 +269,9 @@ Take the version from the latest shipment response; never hardcode it to 0.
 
 ### Trip Fields
 
-`TripRequest`: `origin`, `destination`, `departureAt`, `expectedArrivalAt`, `vehicleId`.
+`TripRequest`: `origin`, `destination`, `departureAt`, `expectedArrivalAt`, `vehicleId`,
+and `expectedVersion`. Create omits expectedVersion; update must send the version
+from the latest TripResponse. A 409 requires explicit review/reload.
 `TripResponse` also exposes `id`, `version`, `deleted`, and `employeeIds`.
 Do not introduce a separate TripStatus or trip tracking number based on the mockup.
 Arrival must follow departure. A legacy trip may have no vehicle; new create/update
@@ -430,5 +425,157 @@ responses to 409 conflicts. Tests are not required for every static decoration.
 - [CRA — Environment Variables](https://create-react-app.dev/docs/adding-custom-environment-variables/)
 - [CRA — Development Proxy](https://create-react-app.dev/docs/proxying-api-requests-in-development/)
 
-This document describes the plan and shared guidelines. Creating the React
-application is a separate task; adding this document does not run the CRA generator.
+The CRA application now exists in frontend/. See frontend/README.md for the current
+implementation status and development commands.
+
+## 17. CRA Foundation and Routing Status
+
+The existing CRA application and installed React Router dependency are reused.
+src/index.js mounts src/app/App.js, which owns BrowserRouter and global styles.
+AppRoutes.js centralizes the routes listed in section 7, including the root redirect
+to /dashboard, dynamic shipment/trip IDs, and a not-found recovery page.
+
+The existing /shipments/new form and its service integrations are preserved.
+Customer management (section 21) and Trip CRUD (section 22) are implemented. The remaining feature routes render explicitly labeled preparation screens;
+they do not represent completed CRUD or make simulated backend requests. The
+shared application layout is now implemented (section 18); subsequent API-backed screens remain separate tasks. Temporary preparation screens share RoutePlaceholder.
+
+Feature directories and shared extension points follow section 4. src/App.js is
+a compatibility re-export; new application configuration belongs in src/app/.
+Router behavior is tested with MemoryRouter and does not require a running backend.
+## 18. Shared Sidebar, Header, and Navigation
+
+All application routes now render under components/layout/AppLayout.jsx through
+React Router Outlet. AppLayout provides the single main content landmark, shared
+Sidebar, sticky Header, and footer. Feature pages contain feature content only.
+The existing shipment creation form is integrated without changing its API calls.
+
+Navigation labels, paths, and SVG icon names are defined in app/navigation.js.
+Use NavLink for client-side navigation and active states on nested paths such as
+/shipments/new and /shipments/42. app/pageMetadata.js provides breadcrumb labels
+and document titles for list pages, detail IDs, creation, and unknown paths.
+
+At widths below 768px, the sidebar is a modal drawer. It supports Escape, a close
+button, backdrop dismissal, focus trapping/restoration, background scroll locking,
+and inert main content while open. Selecting a route closes it; switching back
+to desktop restores persistent navigation. A skip link targets main-content.
+
+The shared shell follows Option 2 using existing design tokens and locally defined
+outline SVG icons, with no added runtime dependency. It displays no fabricated
+backend connectivity, notification counts, logged-in identity, or security status.
+Remaining business screens still explicitly identify their preparation state.
+
+Four layout behavior tests and one shipment-form regression test extend the nine
+routing tests. All 14 tests and the production build passed. Desktop and narrow
+renderings were inspected in headless Edge; backend integration changes are outside
+this layout task.
+## 19. Shared UI Component Contracts
+
+Button, Modal, FormField, and DataTable are implemented in
+frontend/src/components/ui/ using CSS Modules and the shared tokens.
+See [component usage and examples](frontend/src/components/ui/README.md).
+
+Button defaults to type=button and supports primary/secondary/danger/ghost,
+loading, disabled and fullWidth. FormField owns label/control associations,
+hints, field errors and native control attributes for input/select/textarea.
+The shipment creation form now uses these two shared components without
+changing its API payload or request flow.
+
+Modal is a controlled, portaled native dialog with a title, optional description
+and footer, Escape/backdrop/close handling, scroll locking and focus restoration.
+Use one application modal at a time. The parent owns save state and closing.
+
+DataTable accepts column definitions, rows, stable row keys and custom cell
+renderers. Loading, failure/retry and empty states are separate. The table scrolls
+inside its container on narrow screens. API requests, filters, sorting and
+pagination remain the feature's responsibility.
+
+## 20. API Client Implementation
+
+services/apiClient.js is the single fetch entry point. The public API base defaults
+to /api; trailing base slashes and leading service-path slashes are normalized.
+Existing services pass /customers and /shipments and can forward request options,
+including an AbortSignal. Customer loading cancels on shipment-page unmount.
+
+The client sets Accept: application/json, adds Content-Type for serialized JSON
+strings, and preserves custom headers and browser-generated FormData boundaries.
+JSON responses are parsed; empty/204/205 responses return null.
+ApiError contains message, status, data, and optional fieldErrors. Network/read
+failures use status 0, while AbortError remains distinguishable. HTTP status and
+JSON error details are retained; HTML error pages are never shown as UI messages.
+No automatic retry occurs, including on 409 or failed POST requests.
+
+frontend/.env.example documents PORT=3000 and REACT_APP_API_BASE_URL=/api, with
+explicit public-configuration guidance. The existing package.json proxy targets
+localhost:8080 during npm start. Production hosting must route /api separately.
+
+## 21. Customer CRUD Interface
+
+/customers is implemented with the shared UI components and actual Customer DTOs.
+customerApi exposes list, read, create, update and delete operations through the
+shared apiClient. Editing fetches the latest record; there is no version field in
+the current Customer contract, so the UI does not invent optimistic locking.
+
+The screen supports real-record listing, create/edit dialogs, explicit permanent
+delete confirmation, loading/empty/error/retry states and success notices.
+Field lengths and required inputs match CustomerRequest; values are trimmed.
+409 duplicate-email errors preserve the form, 404 offers list refresh, and failed
+deletion retains the row. Only successful server mutations change displayed data.
+Read requests use AbortController; pending writes prevent duplicate submissions
+and dismissal. Customer tests mock fetch at the HTTP boundary and assert endpoint
+paths, methods, request bodies and visible results, including failure recovery.
+
+## 22. Trip CRUD Interface
+
+/trips lists active trips and provides create/edit dialogs and deactivation
+confirmation. /trips/:id reads real detail data and exposes editing/deactivation.
+tripApi uses GET /api/trips, GET /api/trips/{id}, POST, PUT and DELETE through
+the shared client. No TripStatus or invented tracking number is introduced.
+Crew IDs are shown as returned by the API. Crew management is implemented in
+section 23; shipment assignment remains a separate feature.
+
+The form matches TripRequest: origin and destination are required (255 characters),
+departure/expected arrival are required, arrival must follow departure, and vehicleId
+must identify an active vehicle. There is no vehicle listing HTTP endpoint yet.
+The current form explicitly accepts a vehicle ID; it does not invent vehicle options.
+The backend validates vehicle existence and capacity.
+
+Create omits expectedVersion. Edit fetches the current record and sends its actual
+version, including zero when returned by the server. A missing version blocks save.
+409 preserves the draft and blocks resubmission until the user explicitly reloads
+the current record; a capacity conflict also requires reviewing the vehicle.
+Reload warns that it replaces entered values. Requests are never auto-retried.
+
+datetime-local fields show browser-local dates in the stated IANA time zone and
+submit UTC ISO timestamps. Seconds/milliseconds are preserved on edit. Shared
+dateFormat utilities use bg-BG display formatting and an explicit browser time zone.
+No fixed UTC offset or future-departure rule is assumed.
+
+DELETE deactivates a course, retaining historical data. A course with undelivered
+shipments receives a 409 and stays visible. 404 offers recovery. Pending writes
+prevent duplicate submissions/dismissal; reads cancel on unmount. Tests exercise
+real services/client with mocked fetch and assert payloads, fresh versions, conflict
+recovery, schedules, detail navigation and deactivation outcomes.
+
+## 23. Trip Crew Management
+
+TripCrew is integrated into /trips/:id. It displays employeeIds from TripResponse,
+accepts an existing active employee ID and assigns it via
+PUT /api/trips/{id}/employees/{employeeId}. The returned TripResponse updates
+both crew and version. No employee-list endpoint exists, so the UI explicitly
+uses IDs without fabricated names, selectors or employee profiles.
+
+Removal requires confirmation and uses DELETE at the same path; it does not
+delete an Employee. The backend allows removing an inactive existing employee.
+After a successful 204, GET /api/trips/{id} refreshes the authoritative crew/version.
+A failed readback is reported separately from the successful mutation. Old data
+is marked stale and further crew changes wait for an explicit successful refresh.
+Refresh retries GET only. 404/409 and network errors preserve visible data/input;
+conflicts require refreshing, and no mutation is automatically repeated.
+
+Crew writes/readbacks block overlapping crew operations and trip editing,
+deactivation or page refresh. Navigation may still leave the page; late results
+are ignored and reads are cancelled. Confirmation dialogs manage keyboard focus;
+focus returns to an available control after the removed row action disappears.
+Feature tests use real services/client with mocked fetch and cover endpoints,
+duplicates, pending requests, confirmation, conflicts and failed readback recovery.

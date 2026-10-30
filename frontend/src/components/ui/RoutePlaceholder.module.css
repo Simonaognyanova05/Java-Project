@@ -1,0 +1,7 @@
+.panel { background: var(--color-surface); border: 1px solid var(--color-border); border-radius: var(--radius-lg); padding: var(--space-8); }
+.tag { display: inline-block; margin-bottom: var(--space-4); color: var(--color-primary); font-size: var(--font-size-xs); }
+.panel h1 { margin: 0 0 var(--space-4); font-size: clamp(var(--font-size-xl), 4vw, var(--font-size-2xl)); }
+.panel p { color: var(--color-text-muted); max-width: 65ch; }
+.actions { margin-top: var(--space-6); }
+.actions a { color: var(--color-primary); }
+@media (max-width: 767px) { .panel { padding: var(--space-6); } }
