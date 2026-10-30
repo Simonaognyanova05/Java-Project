@@ -443,9 +443,34 @@ to /dashboard, dynamic shipment/trip IDs, and a not-found recovery page.
 The existing /shipments/new form and its service integrations are preserved.
 Other feature routes currently render explicitly labeled preparation screens;
 they do not represent completed CRUD or make simulated backend requests. The
-permanent application layout, Sidebar, Header, and subsequent API-backed screens
-remain separate tasks. Temporary preparation screens share RoutePlaceholder.
+shared application layout is now implemented (section 18); subsequent API-backed screens remain separate tasks. Temporary preparation screens share RoutePlaceholder.
 
 Feature directories and shared extension points follow section 4. src/App.js is
 a compatibility re-export; new application configuration belongs in src/app/.
 Router behavior is tested with MemoryRouter and does not require a running backend.
+## 18. Shared Sidebar, Header, and Navigation
+
+All application routes now render under components/layout/AppLayout.jsx through
+React Router Outlet. AppLayout provides the single main content landmark, shared
+Sidebar, sticky Header, and footer. Feature pages contain feature content only.
+The existing shipment creation form is integrated without changing its API calls.
+
+Navigation labels, paths, and SVG icon names are defined in app/navigation.js.
+Use NavLink for client-side navigation and active states on nested paths such as
+/shipments/new and /shipments/42. app/pageMetadata.js provides breadcrumb labels
+and document titles for list pages, detail IDs, creation, and unknown paths.
+
+At widths below 768px, the sidebar is a modal drawer. It supports Escape, a close
+button, backdrop dismissal, focus trapping/restoration, background scroll locking,
+and inert main content while open. Selecting a route closes it; switching back
+to desktop restores persistent navigation. A skip link targets main-content.
+
+The shared shell follows Option 2 using existing design tokens and locally defined
+outline SVG icons, with no added runtime dependency. It displays no fabricated
+backend connectivity, notification counts, logged-in identity, or security status.
+Remaining business screens still explicitly identify their preparation state.
+
+Four layout behavior tests and one shipment-form regression test extend the nine
+routing tests. All 14 tests and the production build passed. Desktop and narrow
+renderings were inspected in headless Edge; backend integration changes are outside
+this layout task.

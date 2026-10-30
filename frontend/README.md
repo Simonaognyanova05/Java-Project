@@ -23,7 +23,7 @@ contracts or add backend dependencies to placeholder routes.
 - `src/app/navigation.js`: shared navigation labels and paths.
 - `src/features/`: feature pages, including the existing shipment creation screen.
 - `src/components/ui/`: shared presentation components.
-- `src/components/layout/`: reserved for the next layout task.
+- `src/components/layout/`: shared AppLayout, Sidebar, Header, and SVG navigation icons.
 - `src/services/`: existing backend integration modules.
 - `src/styles/`: existing design tokens and global CSS.
 - `src/hooks/`, `src/constants/`, `src/utils/`, `src/assets/`: shared extension points.
@@ -46,7 +46,7 @@ contracts or add backend dependencies to placeholder routes.
 | Other paths | Not-found page with a recovery link |
 
 Placeholders are clearly labeled; they do not fetch or simulate business data.
-The permanent Sidebar/Header/layout and feature CRUD implementations are separate tasks.
+All routes share the Sidebar/Header/layout. Feature CRUD implementations remain separate tasks.
 
 ## Verification
 
@@ -69,3 +69,25 @@ CRA uses an older Jest resolver. The package.json Jest moduleNameMapper resolves
 React Router 7's react-router/dom export to its installed CommonJS entry point;
 setupTests.js supplies the Encoding API for jsdom. These are test-environment
 compatibility settings; the browser build uses the package's normal exports.
+## Shared application layout
+
+AppRoutes nests every route under AppLayout with an Outlet. The layout owns the
+single main landmark, persistent desktop sidebar, header breadcrumbs, and footer.
+Sidebar navigation uses NavLink and remains active on nested feature routes.
+Header breadcrumbs and the browser title follow the current path and record ID.
+
+Below 768px the sidebar becomes a modal drawer. The menu button reports its expanded
+state; the drawer supports a close button, backdrop, Escape, focus trapping, focus
+restoration, scroll locking, and closing on route selection. Resizing to desktop
+restores normal navigation. A skip link leads to the main content.
+
+CreateShipmentPage now contains its feature content only; customer fetching and
+shipment submission retain their existing service integrations. The duplicate
+sidebar/header/footer and their old CSS were removed. No placeholder health,
+authentication, notification, or secure-connection claims are displayed by the shell.
+
+Verification: 14 Jest/React Testing Library tests and the production build passed.
+The actual UI was also inspected in headless Edge at desktop and narrow widths.
+Layout tests cover nested active navigation, breadcrumbs, mobile focus/keyboard
+behavior, route selection, and resizing. A form regression test uses mocked API
+services to verify shipment submission inside the shared shell.
