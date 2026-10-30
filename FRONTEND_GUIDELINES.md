@@ -138,41 +138,34 @@ real use.
 
 ## 5. Colors, Typography, and Spacing
 
-Initial shared tokens for `src/styles/tokens.css`:
+The source of truth is [tokens.css](frontend/src/styles/tokens.css). Component
+CSS Modules consume these variables; add shared color roles there instead of
+introducing a separate palette for each feature.
 
-```css
-:root {
-  --color-bg: #08131d;
-  --color-surface: #101f2b;
-  --color-surface-hover: #162b39;
-  --color-border: #243b4b;
-  --color-text: #f3f6fa;
-  --color-text-muted: #a5b8ca;
-  --color-primary: #36e6bc;
-  --color-on-primary: #06231c;
-  --color-warning: #ffab63;
-  --color-danger: #ff7785;
-  --color-info: #67b8ff;
+| Role | Token / value |
+|---|---|
+| Canvas / panels | --color-bg: #08131d / --color-surface: #101f2b |
+| Primary action | --color-primary: #36e6bc, dark --color-on-primary text |
+| Text / secondary text | --color-text: #f3f6fa / --color-text-muted: #a5b8ca |
+| Warning / error / information | --color-warning / --color-danger / --color-info |
+| Shipment statuses | --color-status-created, -accepted, -loaded, -in-transit, -delivered |
+| Font | --font-body: Segoe UI with system and Arial fallbacks; Cyrillic supported |
+| Type scale | --font-size-xs/sm/md/lg/xl/2xl: 12/14/16/20/24/32px at default root size |
+| Weights | --font-weight-regular/medium/semibold/bold: 400/500/600/700 |
+| Spacing | --space-1 through -9 and -12: 4/8/12/16/20/24/28/32/36/48px |
+| Corners | --radius-sm/md/lg: 6/10/16px |
+| Controls / sidebar | --control-height: 44px / --sidebar-width: 230px |
 
-  --font-body: "Inter", "Segoe UI", sans-serif;
-  --radius-sm: 6px;
-  --radius-md: 10px;
-  --radius-lg: 16px;
+Body text and form inputs use 16px, labels and secondary content use 14px,
+supporting captions use 12px, and page headings use 24?32px. Sizes use rem for
+user font preferences. The system font stack needs no external font request.
+Use semantic surface, border, subtle-background, focus, shadow, and motion tokens
+for active, hover, error, success, and information states. Status colors remain
+paired with visible labels; tokens alone do not implement status components.
 
-  --space-1: 4px;
-  --space-2: 8px;
-  --space-3: 12px;
-  --space-4: 16px;
-  --space-6: 24px;
-  --space-8: 32px;
-  --sidebar-width: 208px;
-}
-```
-
-Use 16px body text, 14px table and secondary text, and 24–32px headings.
-If Inter is included, use a version with Cyrillic support and follow its license.
-All components use the shared tokens. Adjust colors and dimensions centrally
-rather than introducing a separate palette for each page.
+The shared layout, preparation screens, and shipment form use this baseline.
+Inputs retain visible keyboard focus, native selects follow the dark color scheme,
+and reduced-motion preferences remove decorative transitions and spinner motion.
 
 ## 6. Layout and Responsive Behavior
 

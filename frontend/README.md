@@ -91,3 +91,11 @@ The actual UI was also inspected in headless Edge at desktop and narrow widths.
 Layout tests cover nested active navigation, breadcrumbs, mobile focus/keyboard
 behavior, route selection, and resizing. A form regression test uses mocked API
 services to verify shipment submission inside the shared shell.
+## Option 2 design tokens
+
+src/styles/tokens.css owns the dark navy/mint palette, semantic status colors,
+system font stack with Cyrillic support, type scale, spacing, radii, shadows,
+focus treatment, and motion duration. Component CSS Modules consume these tokens.
+Use 16px inputs/body text, 14px labels, 12px captions, and 24?32px page headings.
+The shared shell, preparation pages, and shipment creation form follow this scale.
+No external font or styling dependency is needed.
