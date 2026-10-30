@@ -1,0 +1,11 @@
+.wrapper { width: 100%; min-width: 0; overflow-x: auto; border: 1px solid var(--color-border); border-radius: var(--radius-md); background: var(--color-surface); }
+.table { width: 100%; border-collapse: collapse; text-align: left; font-size: var(--font-size-sm); }
+.table caption { padding: var(--space-4); text-align: left; color: var(--color-text); font-weight: var(--font-weight-semibold); }
+.table th, .table td { padding: var(--space-3) var(--space-4); border-top: 1px solid var(--color-border); vertical-align: middle; overflow-wrap: anywhere; min-width: 120px; }
+.table th { color: var(--color-text-muted); background: var(--color-surface-input); font-weight: var(--font-weight-semibold); }
+.table tbody tr:hover { background: var(--color-surface-hover); }
+.table .numeric { text-align: right; font-variant-numeric: tabular-nums; }
+.table .empty, .state { padding: var(--space-6); color: var(--color-text-muted); text-align: center; }
+.state { border: 1px solid var(--color-border); border-radius: var(--radius-md); background: var(--color-surface); }
+.state[role="alert"] { color: var(--color-danger); }
+.state p { margin: 0 0 var(--space-4); }

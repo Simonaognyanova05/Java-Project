@@ -467,3 +467,23 @@ Four layout behavior tests and one shipment-form regression test extend the nine
 routing tests. All 14 tests and the production build passed. Desktop and narrow
 renderings were inspected in headless Edge; backend integration changes are outside
 this layout task.
+## 19. Shared UI Component Contracts
+
+Button, Modal, FormField, and DataTable are implemented in
+frontend/src/components/ui/ using CSS Modules and the shared tokens.
+See [component usage and examples](frontend/src/components/ui/README.md).
+
+Button defaults to type=button and supports primary/secondary/danger/ghost,
+loading, disabled and fullWidth. FormField owns label/control associations,
+hints, field errors and native control attributes for input/select/textarea.
+The shipment creation form now uses these two shared components without
+changing its API payload or request flow.
+
+Modal is a controlled, portaled native dialog with a title, optional description
+and footer, Escape/backdrop/close handling, scroll locking and focus restoration.
+Use one application modal at a time. The parent owns save state and closing.
+
+DataTable accepts column definitions, rows, stable row keys and custom cell
+renderers. Loading, failure/retry and empty states are separate. The table scrolls
+inside its container on narrow screens. API requests, filters, sorting and
+pagination remain the feature's responsibility.

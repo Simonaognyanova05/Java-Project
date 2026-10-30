@@ -99,3 +99,10 @@ focus treatment, and motion duration. Component CSS Modules consume these tokens
 Use 16px inputs/body text, 14px labels, 12px captions, and 24?32px page headings.
 The shared shell, preparation pages, and shipment creation form follow this scale.
 No external font or styling dependency is needed.
+
+## Shared UI
+
+Button, Modal, FormField, and DataTable live in src/components/ui/ and use
+the shared design tokens. See [their contracts and examples](src/components/ui/README.md).
+Shipment creation already uses Button and FormField. Modal and DataTable are
+available for the upcoming CRUD screens without adding placeholder API actions.

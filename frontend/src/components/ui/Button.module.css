@@ -1,0 +1,13 @@
+.button { display: inline-flex; align-items: center; justify-content: center; gap: var(--space-2); min-height: var(--control-height); padding: var(--space-2) var(--space-4); border: 1px solid transparent; border-radius: var(--radius-sm); font-size: var(--font-size-sm); font-weight: var(--font-weight-semibold); line-height: var(--line-height-body); cursor: pointer; transition: background var(--motion-fast), border-color var(--motion-fast); }
+.primary { background: var(--color-primary); color: var(--color-on-primary); }
+.primary:hover:not(:disabled) { background: var(--color-primary-hover); }
+.secondary { background: var(--color-surface); color: var(--color-text); border-color: var(--color-border-strong); }
+.secondary:hover:not(:disabled), .ghost:hover:not(:disabled) { background: var(--color-surface-hover); }
+.danger { background: var(--color-danger-subtle); color: var(--color-danger); border-color: var(--color-danger-border); }
+.danger:hover:not(:disabled) { background: var(--color-danger); color: var(--color-on-danger); }
+.ghost { background: transparent; color: var(--color-primary); }
+.fullWidth { width: 100%; }
+.button:disabled { opacity: .6; cursor: not-allowed; }
+.spinner { width: 1em; height: 1em; flex-shrink: 0; border: 2px solid currentColor; border-right-color: transparent; border-radius: var(--radius-round); animation: spin .7s linear infinite; }
+@keyframes spin { to { transform: rotate(360deg); } }
+@media (prefers-reduced-motion: reduce) { .button { transition: none; } .spinner { animation: none; } }

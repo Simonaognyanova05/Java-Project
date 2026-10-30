@@ -3,6 +3,8 @@ import { Link } from 'react-router-dom';
 import { getCustomers } from '../../services/customerApi';
 import { createShipment } from '../../services/shipmentApi';
 import styles from './CreateShipmentPage.module.css';
+import Button from '../../components/ui/Button';
+import FormField from '../../components/ui/FormField';
 
 const initialForm = {
   customerId: '',
@@ -112,37 +114,30 @@ function CreateShipmentPage() {
           <form onSubmit={submit}>
             <div className={styles.formSection}>
               <div className={styles.sectionTitle}><span>01</span><h3>Получател</h3><i /></div>
-              <div className={styles.field}>
-                <label htmlFor="customerId">Клиент <span>*</span></label>
-                <select id="customerId" name="customerId" value={form.customerId} onChange={updateField} required disabled={customersLoading || !!customersError || customers.length === 0}>
-                  <option value="">{customersLoading ? 'Зареждане на клиенти…' : customers.length ? 'Изберете клиент' : 'Няма налични клиенти'}</option>
-                  {customers.map((customer) => <option key={customer.id} value={customer.id}>{customerLabel(customer)}{customer.email ? ` · ${customer.email}` : ''}</option>)}
-                </select>
-                <small>Пратката ще бъде свързана с избрания клиент.</small>
-              </div>
-              <div className={styles.field}>
-                <label htmlFor="recipientName">Име на получателя <span>*</span></label>
-                <input id="recipientName" name="recipientName" value={form.recipientName} onChange={updateField} placeholder="напр. Мария Петрова" maxLength="160" autoComplete="name" required />
-              </div>
+              <FormField as="select" id="customerId" name="customerId" label="Клиент"
+                value={form.customerId} onChange={updateField} required
+                disabled={customersLoading || !!customersError || customers.length === 0}
+                hint="Пратката ще бъде свързана с избрания клиент.">
+                <option value="">{customersLoading ? 'Зареждане на клиенти…' : customers.length ? 'Изберете клиент' : 'Няма налични клиенти'}</option>
+                {customers.map((customer) => <option key={customer.id} value={customer.id}>{customerLabel(customer)}{customer.email ? ` · ${customer.email}` : ''}</option>)}
+              </FormField>
+              <FormField id="recipientName" name="recipientName" label="Име на получателя"
+                value={form.recipientName} onChange={updateField} placeholder="напр. Мария Петрова"
+                maxLength="160" autoComplete="name" required />
             </div>
 
             <div className={styles.formSection}>
               <div className={styles.sectionTitle}><span>02</span><h3>Доставка</h3><i /></div>
-              <div className={styles.field}>
-                <label htmlFor="deliveryAddress">Адрес за доставка <span>*</span></label>
-                <div className={styles.inputWithIcon}><span aria-hidden="true">⌖</span><input id="deliveryAddress" name="deliveryAddress" value={form.deliveryAddress} onChange={updateField} placeholder="Улица, номер, град, пощенски код" maxLength="255" autoComplete="street-address" required /></div>
-              </div>
+              <FormField id="deliveryAddress" name="deliveryAddress" label="Адрес за доставка"
+                value={form.deliveryAddress} onChange={updateField} leading="⌖"
+                placeholder="Улица, номер, град, пощенски код" maxLength="255" autoComplete="street-address" required />
               <div className={styles.twoColumns}>
-                <div className={styles.field}>
-                  <label htmlFor="weightKg">Тегло <span>*</span></label>
-                  <div className={styles.inputWithUnit}><input id="weightKg" name="weightKg" type="number" min="0.01" max="9999999999.99" step="0.01" value={form.weightKg} onChange={updateField} placeholder="0.00" required /><span>кг</span></div>
-                  <small>Въведете теглото в килограми.</small>
-                </div>
-                <div className={styles.field}>
-                  <label htmlFor="expectedDeliveryAt">Очаквана доставка <span>*</span></label>
-                  <input id="expectedDeliveryAt" name="expectedDeliveryAt" type="datetime-local" min={minDeliveryDate} value={form.expectedDeliveryAt} onChange={updateField} required />
-                  <small>Посочете бъдеща дата и час.</small>
-                </div>
+                <FormField id="weightKg" name="weightKg" label="Тегло" type="number"
+                  min="0.01" max="9999999999.99" step="0.01" value={form.weightKg} onChange={updateField}
+                  placeholder="0.00" trailing="кг" hint="Въведете теглото в килограми." required />
+                <FormField id="expectedDeliveryAt" name="expectedDeliveryAt" label="Очаквана доставка"
+                  type="datetime-local" min={minDeliveryDate} value={form.expectedDeliveryAt}
+                  onChange={updateField} hint="Посочете бъдеща дата и час." required />
               </div>
             </div>
 
@@ -150,9 +145,10 @@ function CreateShipmentPage() {
 
             <div className={styles.formFooter}>
               <p><span className={styles.lockIcon} aria-hidden="true">▣</span> Tracking номерът се генерира автоматично.</p>
-              <button className={styles.submitButton} type="submit" disabled={saving || customersLoading || !!customersError || customers.length === 0}>
-                {saving ? <><span className={styles.spinner} /> Създаване…</> : <>Създай пратка <span aria-hidden="true">→</span></>}
-              </button>
+              <Button type="submit" loading={saving} loadingText="Създаване…"
+                disabled={customersLoading || !!customersError || customers.length === 0}>
+                Създай пратка <span aria-hidden="true">→</span>
+              </Button>
             </div>
           </form>
         </section>
