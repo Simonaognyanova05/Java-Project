@@ -16,3 +16,10 @@
 .details dt { color: var(--color-text-muted); font-size: var(--font-size-sm); }
 .details dd { margin: var(--space-1) 0 0; overflow-wrap: anywhere; }
 @media (max-width: 767px) { .heading { align-items: flex-start; flex-direction: column; } .details { grid-template-columns: minmax(0, 1fr); } .detailPanel { padding: var(--space-4); } }
+
+.crewPanel { margin-top: var(--space-6); padding: var(--space-6); border: 1px solid var(--color-border); border-radius: var(--radius-lg); background: var(--color-surface); }
+.crewPanel h2 { margin: 0 0 var(--space-2); font-size: var(--font-size-xl); }
+.crewForm { display: flex; align-items: flex-start; flex-wrap: wrap; gap: var(--space-4); margin-bottom: var(--space-6); }
+.crewForm > div { flex: 1 1 250px; margin: 0; }
+.crewForm > button { margin-top: var(--space-7); }
+@media (max-width: 767px) { .crewPanel { padding: var(--space-4); } .crewForm { flex-direction: column; } .crewForm > div { flex: initial; width: 100%; } .crewForm > button { margin-top: 0; width: 100%; } }

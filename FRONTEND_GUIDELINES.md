@@ -531,8 +531,8 @@ paths, methods, request bodies and visible results, including failure recovery.
 confirmation. /trips/:id reads real detail data and exposes editing/deactivation.
 tripApi uses GET /api/trips, GET /api/trips/{id}, POST, PUT and DELETE through
 the shared client. No TripStatus or invented tracking number is introduced.
-Crew IDs are shown as returned by the API; crew/assignment management are separate
-features.
+Crew IDs are shown as returned by the API. Crew management is implemented in
+section 23; shipment assignment remains a separate feature.
 
 The form matches TripRequest: origin and destination are required (255 characters),
 departure/expected arrival are required, arrival must follow departure, and vehicleId
@@ -556,3 +556,26 @@ shipments receives a 409 and stays visible. 404 offers recovery. Pending writes
 prevent duplicate submissions/dismissal; reads cancel on unmount. Tests exercise
 real services/client with mocked fetch and assert payloads, fresh versions, conflict
 recovery, schedules, detail navigation and deactivation outcomes.
+
+## 23. Trip Crew Management
+
+TripCrew is integrated into /trips/:id. It displays employeeIds from TripResponse,
+accepts an existing active employee ID and assigns it via
+PUT /api/trips/{id}/employees/{employeeId}. The returned TripResponse updates
+both crew and version. No employee-list endpoint exists, so the UI explicitly
+uses IDs without fabricated names, selectors or employee profiles.
+
+Removal requires confirmation and uses DELETE at the same path; it does not
+delete an Employee. The backend allows removing an inactive existing employee.
+After a successful 204, GET /api/trips/{id} refreshes the authoritative crew/version.
+A failed readback is reported separately from the successful mutation. Old data
+is marked stale and further crew changes wait for an explicit successful refresh.
+Refresh retries GET only. 404/409 and network errors preserve visible data/input;
+conflicts require refreshing, and no mutation is automatically repeated.
+
+Crew writes/readbacks block overlapping crew operations and trip editing,
+deactivation or page refresh. Navigation may still leave the page; late results
+are ignored and reads are cancelled. Confirmation dialogs manage keyboard focus;
+focus returns to an available control after the removed row action disappears.
+Feature tests use real services/client with mocked fetch and cover endpoints,
+duplicates, pending requests, confirmation, conflicts and failed readback recovery.

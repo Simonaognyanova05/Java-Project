@@ -4,6 +4,7 @@ import Button from '../../components/ui/Button';
 import { getTrip } from '../../services/tripApi';
 import { formatDateTime, userTimeZone } from '../../utils/dateFormat';
 import TripForm from './TripForm';
+import TripCrew from './TripCrew';
 import DeactivateTripDialog from './DeactivateTripDialog';
 import styles from './TripsPage.module.css';
 
@@ -17,6 +18,7 @@ export default function TripDetailsPage() {
   const [editing, setEditing] = useState(false);
   const [deactivating, setDeactivating] = useState(false);
   const [notice, setNotice] = useState('');
+  const [crewBusy, setCrewBusy] = useState(false);
 
   useEffect(() => {
     const controller = new AbortController();
@@ -27,6 +29,7 @@ export default function TripDetailsPage() {
     setEditing(false);
     setDeactivating(false);
     setNotice('');
+    setCrewBusy(false);
     getTrip(id, { signal: controller.signal })
       .then((data) => { if (active) setTrip(data); })
       .catch((failure) => {
@@ -58,11 +61,12 @@ export default function TripDetailsPage() {
             <div><dt>Екипаж (ID)</dt><dd>{trip.employeeIds?.length ? trip.employeeIds.join(', ') : 'Няма назначен екипаж'}</dd></div>
           </dl>
           <div className={styles.rowActions}>
-            <Button variant="secondary" onClick={() => setEditing(true)}>Редактирай курса</Button>
-            <Button variant="danger" onClick={() => setDeactivating(true)}>Деактивирай</Button>
-            <Button variant="ghost" onClick={reload}>Обнови</Button>
+            <Button variant="secondary" disabled={crewBusy} onClick={() => setEditing(true)}>Редактирай курса</Button>
+            <Button variant="danger" disabled={crewBusy} onClick={() => setDeactivating(true)}>Деактивирай</Button>
+            <Button variant="ghost" disabled={crewBusy} onClick={reload}>Обнови</Button>
           </div>
         </div>
+        <TripCrew key={trip.id} trip={trip} onUpdated={setTrip} onBusyChange={setCrewBusy} />
         {editing && <TripForm tripId={trip.id} onClose={() => setEditing(false)} onReloadList={() => navigate('/trips')}
           onSaved={(updated) => { setTrip(updated); setEditing(false); setNotice('Промените по курса са запазени.'); }} />}
         {deactivating && <DeactivateTripDialog trip={trip} onClose={() => setDeactivating(false)}

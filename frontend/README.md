@@ -165,7 +165,7 @@ deactivation when undelivered shipments exist.
 
 Vehicle selection currently uses an explicitly labeled ID input because there is
 no vehicle-list HTTP endpoint. Supply an existing active vehicle ID; no simulated
-fleet options are provided. Vehicle/crew CRUD and shipment assignment remain
+fleet options are provided. Vehicle/employee CRUD and shipment assignment remain
 separate features.
 
 Creation omits expectedVersion. Editing reads the latest trip, preserves timestamp
@@ -177,3 +177,18 @@ the stated browser time zone; submitted timestamps are UTC. Reads are cancellabl
 Trip feature tests cover real service/client calls through mocked fetch, including
 creation, updates, zero/missing/stale versions, validation, failed/successful
 deactivation, detail links, retry and cancellation.
+
+## Trip crew management
+
+Trip details include an API-backed crew panel. Assign an existing active employee
+by ID through PUT /api/trips/{id}/employees/{employeeId}; the response replaces
+the current trip, including its version. A duplicate ID is caught locally.
+There is no employee listing/lookup HTTP endpoint, so names/options are not invented.
+
+Removing a crew member requires confirmation and sends DELETE to the same path.
+This only removes the assignment, not the employee profile. After 204, the trip
+is fetched again to obtain the authoritative crew/version. If readback fails,
+the UI distinguishes successful removal from failed refresh, marks displayed
+data stale and offers a GET-only refresh without repeating DELETE.
+Conflicts also require refresh. Pending requests block duplicate/overlapping trip
+actions. Readback cancels on unmount and late results cannot overwrite a new page.
