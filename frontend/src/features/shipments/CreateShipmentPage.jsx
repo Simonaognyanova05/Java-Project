@@ -31,11 +31,12 @@ function CreateShipmentPage() {
 
   useEffect(() => {
     let active = true;
-    getCustomers()
+    const controller = new AbortController();
+    getCustomers({ signal: controller.signal })
       .then((data) => { if (active) setCustomers(data); })
-      .catch((error) => { if (active) setCustomersError(error.message); })
+      .catch((error) => { if (active && error.name !== 'AbortError') setCustomersError(error.message); })
       .finally(() => { if (active) setCustomersLoading(false); });
-    return () => { active = false; };
+    return () => { active = false; controller.abort(); };
   }, []);
 
   const updateField = (event) => {

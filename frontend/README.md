@@ -106,3 +106,31 @@ Button, Modal, FormField, and DataTable live in src/components/ui/ and use
 the shared design tokens. See [their contracts and examples](src/components/ui/README.md).
 Shipment creation already uses Button and FormField. Modal and DataTable are
 available for the upcoming CRUD screens without adding placeholder API actions.
+
+## API client and environment
+
+Copy .env.example to .env.local if local overrides are needed, then restart
+npm start. PORT defaults to 3000 and REACT_APP_API_BASE_URL to /api.
+package.json already proxies development requests to http://localhost:8080.
+Run Spring Boot in a separate terminal; a stopped backend causes proxy failures.
+Frontend environment variables are public bundle configuration. Backend secrets
+remain exclusively in the backend's ignored .env. Local frontend .env files
+are ignored; .env.example is tracked.
+
+All HTTP requests go through services/apiClient.js. Services pass paths such as
+/customers (without /api) and serialize JSON bodies. apiRequest adds Accept,
+sets Content-Type for string bodies, preserves custom Headers/AbortSignal, and
+returns parsed JSON or null for empty/204/205 responses. FormData content types
+are left to the browser. This client expects JSON, not file downloads.
+
+ApiError exposes message, status, data and fieldErrors. Status 0 denotes a
+network/read failure. HTTP errors preserve their status (including 409), backend
+message/detail/title and optional validation errors. Non-JSON error bodies receive
+a generic HTTP message; malformed successful JSON is rejected. AbortError is
+passed through for silent cancellation. No request is automatically retried.
+Existing customer and shipment services use this client; customer loading is
+cancelled when the shipment form unmounts.
+
+Production builds require an /api reverse proxy, or a public absolute
+REACT_APP_API_BASE_URL with backend CORS configured for that frontend origin.
+The CRA development proxy does not apply to a production build.

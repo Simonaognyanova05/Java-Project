@@ -487,3 +487,22 @@ DataTable accepts column definitions, rows, stable row keys and custom cell
 renderers. Loading, failure/retry and empty states are separate. The table scrolls
 inside its container on narrow screens. API requests, filters, sorting and
 pagination remain the feature's responsibility.
+
+## 20. API Client Implementation
+
+services/apiClient.js is the single fetch entry point. The public API base defaults
+to /api; trailing base slashes and leading service-path slashes are normalized.
+Existing services pass /customers and /shipments and can forward request options,
+including an AbortSignal. Customer loading cancels on shipment-page unmount.
+
+The client sets Accept: application/json, adds Content-Type for serialized JSON
+strings, and preserves custom headers and browser-generated FormData boundaries.
+JSON responses are parsed; empty/204/205 responses return null.
+ApiError contains message, status, data, and optional fieldErrors. Network/read
+failures use status 0, while AbortError remains distinguishable. HTTP status and
+JSON error details are retained; HTML error pages are never shown as UI messages.
+No automatic retry occurs, including on 409 or failed POST requests.
+
+frontend/.env.example documents PORT=3000 and REACT_APP_API_BASE_URL=/api, with
+explicit public-configuration guidance. The existing package.json proxy targets
+localhost:8080 during npm start. Production hosting must route /api separately.
