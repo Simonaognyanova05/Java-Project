@@ -40,7 +40,7 @@ contracts or add backend dependencies to placeholder routes.
 | `/shipments/:id` | Shipment details placeholder |
 | `/trips` | Trip list placeholder |
 | `/trips/:id` | Trip details placeholder |
-| `/customers` | Customer management placeholder |
+| `/customers` | Customer CRUD with API-backed forms and delete confirmation |
 | `/employees` | Crew management placeholder |
 | `/vehicles` | Fleet management placeholder |
 | Other paths | Not-found page with a recovery link |
@@ -134,3 +134,23 @@ cancelled when the shipment form unmounts.
 Production builds require an /api reverse proxy, or a public absolute
 REACT_APP_API_BASE_URL with backend CORS configured for that frontend origin.
 The CRA development proxy does not apply to a production build.
+
+## Customer management
+
+/customers now loads GET /api/customers and renders real records with the shared
+DataTable. New/edit dialogs use Modal, FormField and Button. Editing reads
+GET /api/customers/{id} before showing the form, then sends PUT; creation sends
+POST and deletion sends DELETE after explicit confirmation.
+
+Fields follow CustomerRequest: firstName/lastName required (80 characters each),
+email required (254 characters, native email validation), phone optional (30).
+Whitespace is trimmed before submission. Successful server responses update rows;
+errors preserve input and existing records. Duplicate email (409), missing records
+(404), backend field errors, loading, empty results and retry are handled.
+Pending mutations block duplicate submission and dialog dismissal. Read requests
+are cancelled on unmount. Deletion is permanent in the current backend; database
+constraints can reject deletion of customers referenced by shipments.
+
+Customer feature tests exercise real API services/client with mocked fetch;
+they do not write to a running database. Routing and layout tests substitute
+the customer page so those checks stay independent of backend requests.

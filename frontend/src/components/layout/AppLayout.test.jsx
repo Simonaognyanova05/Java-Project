@@ -10,6 +10,10 @@ jest.mock('../../features/shipments/CreateShipmentPage', () => {
 const originalMatchMedia = window.matchMedia;
 afterEach(() => { window.matchMedia = originalMatchMedia; });
 
+jest.mock('../../features/customers/CustomersPage', () => {
+  return function CustomersRoute() { return <h1>Клиенти</h1>; };
+});
+
 function renderRoute(path) {
   return render(<MemoryRouter initialEntries={[path]}><AppRoutes /></MemoryRouter>);
 }

@@ -13,6 +13,10 @@ function CurrentPath() {
   return <output aria-label="Current path">{useLocation().pathname}</output>;
 }
 
+jest.mock('../features/customers/CustomersPage', () => {
+  return function CustomersRoute() { return <h1>Клиенти</h1>; };
+});
+
 function renderRoute(path) {
   return render(
     <MemoryRouter initialEntries={[path]}>

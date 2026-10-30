@@ -434,7 +434,7 @@ AppRoutes.js centralizes the routes listed in section 7, including the root redi
 to /dashboard, dynamic shipment/trip IDs, and a not-found recovery page.
 
 The existing /shipments/new form and its service integrations are preserved.
-Other feature routes currently render explicitly labeled preparation screens;
+Customer management is implemented (section 21). The remaining feature routes render explicitly labeled preparation screens;
 they do not represent completed CRUD or make simulated backend requests. The
 shared application layout is now implemented (section 18); subsequent API-backed screens remain separate tasks. Temporary preparation screens share RoutePlaceholder.
 
@@ -506,3 +506,19 @@ No automatic retry occurs, including on 409 or failed POST requests.
 frontend/.env.example documents PORT=3000 and REACT_APP_API_BASE_URL=/api, with
 explicit public-configuration guidance. The existing package.json proxy targets
 localhost:8080 during npm start. Production hosting must route /api separately.
+
+## 21. Customer CRUD Interface
+
+/customers is implemented with the shared UI components and actual Customer DTOs.
+customerApi exposes list, read, create, update and delete operations through the
+shared apiClient. Editing fetches the latest record; there is no version field in
+the current Customer contract, so the UI does not invent optimistic locking.
+
+The screen supports real-record listing, create/edit dialogs, explicit permanent
+delete confirmation, loading/empty/error/retry states and success notices.
+Field lengths and required inputs match CustomerRequest; values are trimmed.
+409 duplicate-email errors preserve the form, 404 offers list refresh, and failed
+deletion retains the row. Only successful server mutations change displayed data.
+Read requests use AbortController; pending writes prevent duplicate submissions
+and dismissal. Customer tests mock fetch at the HTTP boundary and assert endpoint
+paths, methods, request bodies and visible results, including failure recovery.
