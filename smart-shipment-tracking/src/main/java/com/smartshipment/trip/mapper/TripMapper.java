@@ -2,6 +2,7 @@ package com.smartshipment.trip.mapper;
 
 import org.springframework.stereotype.Component;
 
+import com.smartshipment.employee.entity.Employee;
 import com.smartshipment.trip.dto.TripRequest;
 import com.smartshipment.trip.dto.TripResponse;
 import com.smartshipment.trip.entity.Trip;
@@ -20,7 +21,13 @@ public class TripMapper {
     }
 
     public TripResponse toResponse(Trip trip) {
+        Long vehicleId = trip.getVehicle() == null ? null : trip.getVehicle().getId();
+        var employeeIds = trip.getEmployees().stream()
+                .map(Employee::getId)
+                .sorted()
+                .toList();
         return new TripResponse(trip.getId(), trip.getOrigin(), trip.getDestination(),
-                trip.getDepartureAt(), trip.getExpectedArrivalAt(), trip.getVersion(), trip.isDeleted(), trip.getVehicle() == null ? null : trip.getVehicle().getId(), trip.getEmployees().stream().map(employee -> employee.getId()).sorted().toList());
+                trip.getDepartureAt(), trip.getExpectedArrivalAt(), trip.getVersion(), trip.isDeleted(),
+                vehicleId, employeeIds);
     }
 }
