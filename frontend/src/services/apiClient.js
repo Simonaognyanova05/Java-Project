@@ -1,4 +1,4 @@
-const API_BASE_URL = (process.env.REACT_APP_API_BASE_URL?.trim() || '/api').replace(/\/+$/, '');
+export const API_BASE_URL = (process.env.REACT_APP_API_BASE_URL?.trim() || '/api').replace(/\/+$/, '');
 
 export class ApiError extends Error {
   constructor(message, { status = 0, data = null, cause } = {}) {

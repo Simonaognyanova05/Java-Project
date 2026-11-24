@@ -1,2 +1,2 @@
-// Compatibility export; the application entry point lives in src/app.
+// Compatibility export for imports that still point to src/App.js.
 export { default } from './app/App';
