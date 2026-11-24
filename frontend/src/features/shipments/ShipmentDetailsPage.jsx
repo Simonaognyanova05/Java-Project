@@ -1,9 +1,10 @@
 import { useEffect, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import { getCustomer } from '../../services/customerApi';
-import { API_BASE_URL } from '../../services/apiClient';
-import { getShipment, getShipmentHistory } from '../../services/shipmentApi';
-import { shipmentStatusLabel } from '../../constants/shipmentStatuses';
+import { API_BASE_URL, apiRequest } from '../../services/apiClient';
+import { assignShipmentToTrip, getShipment, getShipmentHistory } from '../../services/shipmentApi';
+import { SHIPMENT_STATUS_SEQUENCE, shipmentStatusLabel } from '../../constants/shipmentStatuses';
+import StatusBadge from '../../components/StatusBadge';
 import pageStyles from './CreateShipmentPage.module.css';
 import styles from './ShipmentDetailsPage.module.css';
 
@@ -18,8 +19,6 @@ const dateTime = (value) => {
   }).format(parsed);
 };
 
-const statusClass = (status) => styles[`status_${status}`] || styles.status_unknown;
-
 function ShipmentDetailsPage() {
   const { id } = useParams();
   const [shipment, setShipment] = useState(null);
@@ -29,6 +28,10 @@ function ShipmentDetailsPage() {
   const [error, setError] = useState('');
   const [historyError, setHistoryError] = useState('');
   const [qrError, setQrError] = useState(false);
+  const [trips, setTrips] = useState([]);
+  const [tripId, setTripId] = useState('');
+  const [assigning, setAssigning] = useState(false);
+  const [assignmentMessage, setAssignmentMessage] = useState('');
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const validId = /^\d+$/.test(id || '') && Number(id) > 0;
 
@@ -53,6 +56,8 @@ function ShipmentDetailsPage() {
         if (!active) return;
         setShipment(result);
 
+        apiRequest('/trips').then((items) => { if (active) setTrips(items.filter((item) => !item.deleted)); }).catch(() => {});
+
         const [historyResult, customerResult] = await Promise.allSettled([
           getShipmentHistory(id),
           getCustomer(result.customerId),
@@ -67,6 +72,21 @@ function ShipmentDetailsPage() {
 
     return () => { active = false; };
   }, [id, validId]);
+
+  const assignTrip = async (event) => {
+    event.preventDefault();
+    if (!tripId || !shipment) return;
+    setAssigning(true); setAssignmentMessage('');
+    try {
+      const updated = await assignShipmentToTrip(shipment.id, tripId, shipment.version);
+      setShipment((current) => ({ ...current, tripId: updated.tripId, version: updated.version, status: updated.status }));
+      setAssignmentMessage('Пратката е разпределена към курса.');
+    } catch (requestError) {
+      setAssignmentMessage(requestError.status === 409
+        ? 'Конфликт: пратката е променена след зареждането. Презаредете детайлите и прегледайте актуалната версия.'
+        : requestError.message || 'Разпределянето не успя.');
+    } finally { setAssigning(false); }
+  };
 
   const qrUrl = `${API_BASE_URL.replace(/\/$/, '')}/shipments/${id}/qr-code`;
   const back = <Link to="/shipments/new" className={pageStyles.backLink}><span aria-hidden="true">←</span> Към пратки</Link>;
@@ -108,8 +128,13 @@ function ShipmentDetailsPage() {
             <>
               <div className={styles.summary}>
                 <div className={styles.summaryMain}><span className={styles.summaryIcon} aria-hidden="true">◇</span><div><span className={styles.summaryLabel}>TRACKING НОМЕР</span><strong>{shipment.trackingNumber || `#${shipment.id}`}</strong></div></div>
-                <span className={`${styles.statusBadge} ${statusClass(shipment.status)}`}><i />{shipmentStatusLabel(shipment.status)}</span>
+                <StatusBadge status={shipment.status} />
               </div>
+
+              <section className={styles.historyCard} aria-label="Последователност на статусите">
+                <h2>Последователност на статусите</h2>
+                <ol className="shipmentProgress">{SHIPMENT_STATUS_SEQUENCE.map((status, index) => { const currentIndex = SHIPMENT_STATUS_SEQUENCE.indexOf(shipment.status); return <li key={status} className={index < currentIndex ? 'isComplete' : index === currentIndex ? 'isCurrent' : ''}><span>{index < currentIndex ? '✓' : index + 1}</span><b>{shipmentStatusLabel(status)}</b></li>; })}</ol>
+              </section>
 
               <div className={pageStyles.contentGrid}>
                 <div className={styles.primaryColumn}>
@@ -139,6 +164,11 @@ function ShipmentDetailsPage() {
                         ))}
                       </ol>
                     )}
+                  </section>
+                  <section className={styles.historyCard} aria-labelledby="assign-trip-title">
+                    <div className={styles.historyHeading}><div><span className={styles.historyStep}>03</span><h2 id="assign-trip-title">Разпределяне към курс</h2></div></div>
+                    {shipment.tripId ? <p className={styles.historyMessage}>Пратката е към курс #{shipment.tripId}.</p> : trips.length === 0 ? <p className={styles.historyMessage}>Няма налични курсове за разпределяне.</p> : <form className="assignmentForm" onSubmit={assignTrip}><label htmlFor="tripId">Курс</label><select id="tripId" value={tripId} onChange={(event) => setTripId(event.target.value)} required><option value="">Изберете курс</option>{trips.map((item) => <option key={item.id} value={item.id}>#{item.id} · {item.origin} → {item.destination}</option>)}</select><button type="submit" disabled={assigning || !tripId}>{assigning ? 'Разпределяне…' : 'Разпредели'}</button></form>}
+                    {assignmentMessage && <p role={assignmentMessage.startsWith('Конфликт') ? 'alert' : 'status'} className={styles.historyMessage}>{assignmentMessage} {assignmentMessage.startsWith('Конфликт') && <button type="button" onClick={() => window.location.reload()}>Презареди</button>}</p>}
                   </section>
                 </div>
 

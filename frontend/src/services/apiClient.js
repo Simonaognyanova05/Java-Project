@@ -11,13 +11,17 @@ export async function apiRequest(path, options = {}) {
 
   if (!response.ok) {
     let message = `Заявката не успя (${response.status}).`;
+    let payload;
     try {
-      const payload = await response.json();
+      payload = await response.json();
       message = payload.message || payload.detail || payload.title || message;
     } catch {
       // Keep the HTTP status message when the API has no JSON error body.
     }
-    throw new Error(message);
+    const error = new Error(message);
+    error.status = response.status;
+    error.payload = payload;
+    throw error;
   }
 
   if (response.status === 204) return null;

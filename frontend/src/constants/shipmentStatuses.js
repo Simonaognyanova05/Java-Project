@@ -7,3 +7,5 @@ export const SHIPMENT_STATUSES = {
 };
 
 export const shipmentStatusLabel = (status) => SHIPMENT_STATUSES[status]?.label || status || 'Неизвестен';
+
+export const SHIPMENT_STATUS_SEQUENCE = ['CREATED', 'ACCEPTED', 'LOADED', 'IN_TRANSIT', 'DELIVERED'];
