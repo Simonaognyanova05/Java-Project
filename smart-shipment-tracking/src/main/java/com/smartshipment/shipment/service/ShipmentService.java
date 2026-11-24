@@ -45,8 +45,9 @@ public class ShipmentService {
     public ShipmentResponse create(@Valid ShipmentRequest request) {
         Customer customer = customers.findById(request.customerId())
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Customer not found"));
-        Shipment shipment = shipments.saveAndFlush(mapper.toEntity(request, customer));
-        events.saveAndFlush(new TrackingEvent(shipment, null, ShipmentStatus.CREATED, Instant.now(clock), null));
+        Instant createdAt = Instant.now(clock);
+        Shipment shipment = shipments.saveAndFlush(mapper.toEntity(request, customer, createdAt));
+        events.saveAndFlush(new TrackingEvent(shipment, null, ShipmentStatus.CREATED, createdAt, null));
         return mapper.toResponse(shipment);
     }
 

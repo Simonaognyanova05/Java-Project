@@ -2,6 +2,7 @@ package com.smartshipment.shipment.entity;
 
 import java.math.BigDecimal;
 import java.time.Instant;
+import java.util.Objects;
 import java.util.UUID;
 
 import com.smartshipment.customer.entity.Customer;
@@ -41,7 +42,7 @@ public class Shipment {
     private BigDecimal weightKg;
 
     @Column(nullable = false, updatable = false)
-    private Instant createdAt = Instant.now();
+    private Instant createdAt;
 
     @Column
     private Instant expectedDeliveryAt;
@@ -64,8 +65,13 @@ public class Shipment {
     }
 
     public Shipment(Customer customer, BigDecimal weightKg) {
+        this(customer, weightKg, Instant.now());
+    }
+
+    public Shipment(Customer customer, BigDecimal weightKg, Instant createdAt) {
         this.customer = customer;
         this.weightKg = weightKg;
+        this.createdAt = Objects.requireNonNull(createdAt, "Creation time is required");
     }
 
     public Long getId() { return id; }

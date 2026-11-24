@@ -1,6 +1,9 @@
 package com.smartshipment.shipment.mapper;
 
+import java.time.Instant;
+
 import org.springframework.stereotype.Component;
+
 import com.smartshipment.customer.entity.Customer;
 import com.smartshipment.shipment.dto.ShipmentRequest;
 import com.smartshipment.shipment.dto.ShipmentResponse;
@@ -8,8 +11,8 @@ import com.smartshipment.shipment.entity.Shipment;
 
 @Component
 public class ShipmentMapper {
-    public Shipment toEntity(ShipmentRequest request, Customer customer) {
-        Shipment shipment = new Shipment(customer, request.weightKg());
+    public Shipment toEntity(ShipmentRequest request, Customer customer, Instant createdAt) {
+        Shipment shipment = new Shipment(customer, request.weightKg(), createdAt);
         shipment.setRecipientName(request.recipientName());
         shipment.setDeliveryAddress(request.deliveryAddress());
         shipment.setExpectedDeliveryAt(request.expectedDeliveryAt());

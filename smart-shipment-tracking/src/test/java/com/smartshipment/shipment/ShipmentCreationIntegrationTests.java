@@ -5,7 +5,9 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 import java.math.BigDecimal;
+import java.time.Clock;
 import java.time.Instant;
+import java.time.ZoneOffset;
 import java.util.UUID;
 
 import com.smartshipment.customer.entity.Customer;
@@ -26,7 +28,11 @@ import jakarta.persistence.EntityManager;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Import;
+import org.springframework.context.annotation.Primary;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.MediaType;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -38,8 +44,19 @@ import org.springframework.transaction.support.TransactionTemplate;
 
 @SpringBootTest
 @AutoConfigureMockMvc
+@Import(ShipmentCreationIntegrationTests.FixedClockConfiguration.class)
 class ShipmentCreationIntegrationTests {
+    private static final Instant CREATED_AT = Instant.parse("2026-10-27T10:00:00Z");
     private static final String SCHEMA = "pr4_test_" + UUID.randomUUID().toString().replace("-", "");
+
+    @TestConfiguration
+    static class FixedClockConfiguration {
+        @Bean
+        @Primary
+        Clock creationClock() {
+            return Clock.fixed(CREATED_AT, ZoneOffset.UTC);
+        }
+    }
 
     @DynamicPropertySource
     static void isolatedSchema(DynamicPropertyRegistry registry) {
@@ -97,11 +114,13 @@ class ShipmentCreationIntegrationTests {
             var secondShipment = shipments.findById(id(second)).orElseThrow();
             assertThat(UUID.fromString(firstShipment.getTrackingNumber())).isNotNull();
             assertThat(firstShipment.getTrackingNumber()).isNotEqualTo(secondShipment.getTrackingNumber());
+            assertThat(firstShipment.getCreatedAt()).isEqualTo(CREATED_AT);
             var history = events.findAllByShipmentIdOrderByOccurredAtAscIdAsc(id(first));
             assertThat(history).hasSize(1);
             assertThat(history.getFirst().getPreviousStatus()).isNull();
             assertThat(history.getFirst().getEmployee()).isNull();
             assertThat(history.getFirst().getNewStatus()).isEqualTo(ShipmentStatus.CREATED);
+            assertThat(history.getFirst().getOccurredAt()).isEqualTo(firstShipment.getCreatedAt());
         });
     }
 
