@@ -108,6 +108,7 @@ function CreateShipmentPage() {
             <div className={styles.success} role="status">
               <span className={styles.successIcon} aria-hidden="true">✓</span>
               <div><strong>Пратката е създадена успешно</strong><p>Tracking номер: <b>{createdShipment.trackingNumber}</b></p></div>
+              <Link className={styles.successLink} to={`/shipments/${createdShipment.id}`}>Детайли <span aria-hidden="true">→</span></Link>
               <button type="button" aria-label="Затвори съобщението" onClick={() => setCreatedShipment(null)}>×</button>
             </div>
           )}
