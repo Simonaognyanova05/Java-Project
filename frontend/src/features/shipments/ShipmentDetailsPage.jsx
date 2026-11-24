@@ -1,0 +1,164 @@
+import { useEffect, useState } from 'react';
+import { Link, useParams } from 'react-router-dom';
+import { getCustomer } from '../../services/customerApi';
+import { API_BASE_URL } from '../../services/apiClient';
+import { getShipment, getShipmentHistory } from '../../services/shipmentApi';
+import { shipmentStatusLabel } from '../../constants/shipmentStatuses';
+import pageStyles from './CreateShipmentPage.module.css';
+import styles from './ShipmentDetailsPage.module.css';
+
+const dateTime = (value) => {
+  if (!value) return 'Няма зададена дата';
+  const parsed = new Date(value);
+  if (Number.isNaN(parsed.getTime())) return 'Невалидна дата';
+  return new Intl.DateTimeFormat('bg-BG', {
+    dateStyle: 'long',
+    timeStyle: 'short',
+    timeZone: 'Europe/Sofia',
+  }).format(parsed);
+};
+
+const statusClass = (status) => styles[`status_${status}`] || styles.status_unknown;
+
+function ShipmentDetailsPage() {
+  const { id } = useParams();
+  const [shipment, setShipment] = useState(null);
+  const [customer, setCustomer] = useState(null);
+  const [history, setHistory] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
+  const [historyError, setHistoryError] = useState('');
+  const [qrError, setQrError] = useState(false);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const validId = /^\d+$/.test(id || '') && Number(id) > 0;
+
+  useEffect(() => {
+    let active = true;
+    setShipment(null);
+    setCustomer(null);
+    setHistory([]);
+    setHistoryError('');
+    setQrError(false);
+    setError('');
+    if (!validId) {
+      setError('Невалиден идентификатор на пратка.');
+      setLoading(false);
+      return () => { active = false; };
+    }
+
+    setLoading(true);
+    setError('');
+    getShipment(id)
+      .then(async (result) => {
+        if (!active) return;
+        setShipment(result);
+
+        const [historyResult, customerResult] = await Promise.allSettled([
+          getShipmentHistory(id),
+          getCustomer(result.customerId),
+        ]);
+        if (!active) return;
+        if (historyResult.status === 'fulfilled') setHistory(historyResult.value);
+        else setHistoryError(historyResult.reason.message || 'Историята не може да бъде заредена.');
+        if (customerResult.status === 'fulfilled') setCustomer(customerResult.value);
+      })
+      .catch((requestError) => { if (active) setError(requestError.message || 'Пратката не може да бъде заредена.'); })
+      .finally(() => { if (active) setLoading(false); });
+
+    return () => { active = false; };
+  }, [id, validId]);
+
+  const qrUrl = `${API_BASE_URL.replace(/\/$/, '')}/shipments/${id}/qr-code`;
+  const back = <Link to="/shipments/new" className={pageStyles.backLink}><span aria-hidden="true">←</span> Към пратки</Link>;
+
+  return (
+    <div className={pageStyles.shell}>
+      <aside className={`${pageStyles.sidebar} ${mobileMenuOpen ? pageStyles.sidebarOpen : ''}`}>
+        <Link to="/shipments/new" className={pageStyles.brand} onClick={() => setMobileMenuOpen(false)}>
+          <span className={pageStyles.brandMark} aria-hidden="true">S</span>
+          <span>Smart<span className={pageStyles.brandAccent}>Shipment</span><small>LOGISTICS PLATFORM</small></span>
+        </Link>
+        <div className={pageStyles.navLabel}>РАБОТНО ПРОСТРАНСТВО</div>
+        <nav aria-label="Основна навигация" className={pageStyles.nav}>
+          <span className={pageStyles.navItem} aria-disabled="true"> <span className={pageStyles.navIcon} aria-hidden="true">▦</span> Табло</span>
+          <Link to="/shipments/new" className={`${pageStyles.navItem} ${pageStyles.navActive}`} aria-current="page"><span className={pageStyles.navIcon} aria-hidden="true">◇</span> Пратки</Link>
+          <span className={pageStyles.navItem} aria-disabled="true"><span className={pageStyles.navIcon} aria-hidden="true">↗</span> Курсове</span>
+          <span className={pageStyles.navItem} aria-disabled="true"><span className={pageStyles.navIcon} aria-hidden="true">◎</span> Клиенти</span>
+        </nav>
+        <div className={pageStyles.sidebarBottom}><div className={pageStyles.onlineDot} /> Система онлайн<small>SMART SHIPMENT TRACKING · v1.0</small></div>
+      </aside>
+
+      <div className={pageStyles.mainColumn}>
+        <header className={pageStyles.topbar}>
+          <button className={pageStyles.menuButton} type="button" aria-label="Отвори навигацията" onClick={() => setMobileMenuOpen((open) => !open)}>☰</button>
+          <div className={pageStyles.breadcrumb}>Пратки <span>/</span> <strong>Детайли за пратка</strong></div>
+          <div className={pageStyles.topbarRight}><span className={pageStyles.environment}><span /> ОПЕРАТИВНА СИСТЕМА</span><div className={pageStyles.avatar} aria-label="Потребител">ОА</div></div>
+        </header>
+
+        <main className={pageStyles.workspace}>
+          <div className={pageStyles.pageHeading}>
+            <div><div className={pageStyles.eyebrow}>ПРАТКИ <span>·</span> ПРЕГЛЕД</div><h1>Детайли за пратка</h1><p>Информация за състоянието и проследяването на пратката.</p></div>
+            {back}
+          </div>
+
+          {loading && <section className={styles.stateCard} role="status"><span className={styles.loader} />Зареждане на пратката…</section>}
+          {!loading && error && <section className={`${styles.stateCard} ${styles.stateError}`} role="alert"><span className={styles.stateMark}>!</span><div><strong>Пратката не е налична</strong><p>{error}</p>{back}</div></section>}
+
+          {!loading && shipment && (
+            <>
+              <div className={styles.summary}>
+                <div className={styles.summaryMain}><span className={styles.summaryIcon} aria-hidden="true">◇</span><div><span className={styles.summaryLabel}>TRACKING НОМЕР</span><strong>{shipment.trackingNumber || `#${shipment.id}`}</strong></div></div>
+                <span className={`${styles.statusBadge} ${statusClass(shipment.status)}`}><i />{shipmentStatusLabel(shipment.status)}</span>
+              </div>
+
+              <div className={pageStyles.contentGrid}>
+                <div className={styles.primaryColumn}>
+                  <section className={pageStyles.formCard} aria-labelledby="shipment-data-title">
+                    <div className={pageStyles.cardHeader}><div className={pageStyles.stepIcon}>01</div><div><h2 id="shipment-data-title">Информация за пратката</h2><p>Идентификатор #{shipment.id} <span>·</span> версия {shipment.version}</p></div></div>
+                    <div className={styles.detailGrid}>
+                      <div className={styles.detailItem}><span>ПОЛУЧАТЕЛ</span><strong>{shipment.recipientName || '—'}</strong></div>
+                      <div className={styles.detailItem}><span>КЛИЕНТ</span><strong>{customer ? `${customer.firstName} ${customer.lastName}` : `Клиент #${shipment.customerId}`}</strong>{customer?.email && <small>{customer.email}</small>}</div>
+                      <div className={`${styles.detailItem} ${styles.wideItem}`}><span>АДРЕС ЗА ДОСТАВКА</span><strong>{shipment.deliveryAddress || '—'}</strong></div>
+                      <div className={styles.detailItem}><span>ТЕГЛО</span><strong>{shipment.weightKg != null ? `${Number(shipment.weightKg).toLocaleString('bg-BG', { maximumFractionDigits: 2 })} кг` : '—'}</strong></div>
+                      <div className={styles.detailItem}><span>ОЧАКВАНА ДОСТАВКА</span><strong>{dateTime(shipment.expectedDeliveryAt)}</strong></div>
+                      <div className={styles.detailItem}><span>КУРС</span><strong>{shipment.tripId ? `Курс #${shipment.tripId}` : 'Не е разпределена'}</strong></div>
+                      <div className={styles.detailItem}><span>СТАТУС</span><strong>{shipmentStatusLabel(shipment.status)}</strong></div>
+                    </div>
+                  </section>
+
+                  <section className={styles.historyCard} aria-labelledby="history-title">
+                    <div className={styles.historyHeading}><div><span className={styles.historyStep}>02</span><h2 id="history-title">История на проследяването</h2></div><span className={styles.eventCount}>{history.length} {history.length === 1 ? 'СЪБИТИЕ' : 'СЪБИТИЯ'}</span></div>
+                    {historyError ? <p className={styles.historyMessage} role="status">{historyError}</p> : history.length === 0 ? <p className={styles.historyMessage}>Все още няма събития в историята.</p> : (
+                      <ol className={styles.timeline}>
+                        {history.map((event, index) => (
+                          <li className={styles.timelineItem} key={event.id || `${event.occurredAt}-${index}`}>
+                            <span className={`${styles.timelineDot} ${index === history.length - 1 ? styles.latestDot : ''}`} />
+                            {index < history.length - 1 && <span className={styles.timelineStem} />}
+                            <div className={styles.eventContent}><div><strong>{shipmentStatusLabel(event.newStatus)}</strong>{event.previousStatus && <span> от {shipmentStatusLabel(event.previousStatus)}</span>}</div><p>{dateTime(event.occurredAt)}{event.employeeId ? ` · Служител #${event.employeeId}` : ''}</p></div>
+                          </li>
+                        ))}
+                      </ol>
+                    )}
+                  </section>
+                </div>
+
+                <aside className={styles.sideColumn}>
+                  <section className={styles.qrCard} aria-labelledby="qr-title">
+                    <div className={styles.qrHeader}><div><span>TRACKING</span><h2 id="qr-title">QR код</h2></div><span className={styles.qrSpark} aria-hidden="true">⌗</span></div>
+                    {!qrError ? <img className={styles.qrImage} src={qrUrl} alt={`QR код за пратка ${shipment.trackingNumber}`} onError={() => setQrError(true)} /> : <div className={styles.qrUnavailable}>QR кодът не може да бъде зареден.</div>}
+                    <p>Сканирай кода за бърз достъп до tracking номера.</p>
+                    <div className={styles.qrNumber}>{shipment.trackingNumber}</div>
+                  </section>
+                  <section className={styles.tipCard}><span className={styles.tipIcon} aria-hidden="true">i</span><div><strong>Само за преглед</strong><p>Промяна на статус и разпределяне към курс се извършват от оперативния екип.</p></div></section>
+                </aside>
+              </div>
+            </>
+          )}
+          <footer className={pageStyles.pageFooter}><span>© 2025 Smart Shipment Tracking</span><span>Защитена връзка <i /></span></footer>
+        </main>
+      </div>
+    </div>
+  );
+}
+
+export default ShipmentDetailsPage;

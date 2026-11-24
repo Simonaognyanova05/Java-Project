@@ -230,6 +230,9 @@ classes are the source of truth for exact request and response fields.
 | `DELETE /api/trips/{id}/employees/{employeeId}` | Remove an employee from the crew |
 | `POST /api/shipments` | Create a shipment |
 | `GET /api/shipments/{id}` | Read shipment details |
+| `PATCH /api/shipments/{id}/status` | Change status with expected version and employee ID |
+| `GET /api/shipments/{id}/history` | Read shipment status history |
+| `GET /api/shipments/{id}/qr-code` | Generate a PNG QR code |
 | `PUT /api/shipments/{id}/trip` | Primary assignment endpoint |
 | `GET /api/trips/{id}/shipments` | Limited projection of shipments assigned to a trip |
 | `GET /api/shipments/trip/{tripId}` | Detailed staff report for a trip's shipments |
@@ -239,9 +242,9 @@ Use the primary assignment endpoint in the new frontend. The legacy route
 `PUT /api/shipments/{shipmentId}/trip/{tripId}?expectedVersion=...` remains for
 compatibility but is not the preferred frontend contract.
 
-HTTP endpoints for a general shipment list, status changes, history, public tracking
-lookup, QR images, employee/vehicle CRUD, and dashboard statistics are not available
-yet. `ShipmentLoadingService` is a service operation, not an HTTP endpoint.
+HTTP endpoints for a general shipment list, public tracking lookup, employee/vehicle
+CRUD, and dashboard statistics are not available yet. `ShipmentLoadingService` is
+a service operation, not an HTTP endpoint.
 Do not simulate successful operations in place of a missing API.
 
 ### Example: Create a Shipment
@@ -401,8 +404,8 @@ this document in the same PR where necessary.
 4. Shipment creation/lookup and trip assignment using expectedVersion.
 5. Overdue shipments with actual pagination.
 6. Dashboard based on available data and a schematic route.
-7. Extend backend contracts for general listing, tracking, history, status changes,
-   employees, vehicles, and statistics; then implement the corresponding UI.
+7. Extend backend contracts for general listing, public tracking, employees, vehicles,
+   and statistics; then implement the corresponding UI.
 8. Review responsive behavior, accessibility, and visual consistency with Option 2.
 
 ## 15. Definition of Done

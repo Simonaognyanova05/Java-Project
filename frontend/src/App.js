@@ -1,5 +1,6 @@
 import { BrowserRouter, Link, Navigate, Route, Routes } from 'react-router-dom';
 import CreateShipmentPage from './features/shipments/CreateShipmentPage';
+import ShipmentDetailsPage from './features/shipments/ShipmentDetailsPage';
 import './styles/tokens.css';
 import './styles/global.css';
 
@@ -20,6 +21,7 @@ function App() {
       <Routes>
         <Route path="/" element={<Navigate to="/shipments/new" replace />} />
         <Route path="/shipments/new" element={<CreateShipmentPage />} />
+        <Route path="/shipments/:id" element={<ShipmentDetailsPage />} />
         <Route path="*" element={<NotFoundPage />} />
       </Routes>
     </BrowserRouter>
